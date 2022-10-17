@@ -145,7 +145,9 @@ public class PhotoTDS_App implements ActionListener{
 		btnRegister = new JButton("Crear una cuenta");
 		btnRegister.setFont(new Font("Tahoma", Font.PLAIN, 20));
 		btnRegister.addActionListener(this);
+		
 		panelBorderBtn.add(btnRegister);
+		
 	}
 
 	@Override
