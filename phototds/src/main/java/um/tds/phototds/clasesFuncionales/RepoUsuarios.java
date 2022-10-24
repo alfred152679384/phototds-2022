@@ -1,4 +1,4 @@
-package um.tds.phototds;
+package um.tds.phototds.clasesFuncionales;
 
 import java.util.HashSet;
 

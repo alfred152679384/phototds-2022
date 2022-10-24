@@ -1,4 +1,4 @@
-package um.tds.phototds;
+package um.tds.phototds.interfaz;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -22,39 +22,31 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
-public class RegisterUserPanel implements ActionListener {
+import um.tds.phototds.clasesFuncionales.Controlador;
+import um.tds.phototds.clasesFuncionales.Usuario;
+
+public class RegisterUserPanel{
 	//Constantes
-	private static int DEFAULT_X_Y = 0 ;	
 	private static int DEFAULT_H = 600;
 	private static int DEFAULT_W = 400;
 	private static int DEFAULT_COLUMNS = 30;
 	//variables
-	private PhotoTDS_App mainP;
 	private JFrame frame;
-	private JButton btnOK;
-	private JButton btnCancel;
 	private JTextField txtEmail;
 	private JTextField txtNombre;
 	private JTextField txtUsuario;
 	private JTextField txtCont;
 	private JTextField txtFeNa;
-	private Usuario u;
 
 	/**
 	 * Create the application.
 	 */
-	//	public static void main(String[] args) {
-	//		new RegisterUserPanel();
-	//	}
-	public RegisterUserPanel(PhotoTDS_App mainP) {
-		this.mainP = mainP;
+	public RegisterUserPanel() {
 		initialize();
-		frame.setVisible(true);
-
 	}
-
-	public Usuario getUsuario() {
-		return this.u;
+	
+	public void mostrarVentana() {
+		frame.setVisible(true);
 	}
 
 	/**
@@ -180,32 +172,27 @@ public class RegisterUserPanel implements ActionListener {
 
 		//--->Elementos del panel sur
 		panelSur.setLayout(new FlowLayout(FlowLayout.RIGHT));
-		btnOK = new JButton("OK");
-		btnCancel = new JButton("Cancel");
+		JButton btnOK = new JButton("OK");
+		JButton btnCancel = new JButton("Cancel");
 		panelSur.add(btnOK);
 		panelSur.add(btnCancel);
 	}
 
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		if(e.getSource() == btnOK) {
-			this.u = new Usuario(txtEmail.getText(), txtNombre.getText(), txtUsuario.getText(), txtCont.getText(), LocalDate.parse(txtFeNa.getText()), null);
-			if(!mainP.registrarUsuario(u)) {
-				JOptionPane.showMessageDialog(
-						frame, "Nombre de usuario o contraseña no valido",
-						"Error", JOptionPane.ERROR_MESSAGE);
+	private void addManejadorBtnOK(JButton btnOK) {
+		btnOK.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (Controlador.getSingleton().registerUser(txtNombre.getText(), txtUsuario.getText(), txtCont.getText(), txtFeNa.getText())) {
+					System.out.println("registered");
+				}
+				else {
+					JOptionPane.showMessageDialog(frame, "Nombre de usuario o contraseña no valido",
+							"Error", JOptionPane.ERROR_MESSAGE);
+				}
 			}
-			else {
-				JOptionPane.showMessageDialog(
-						frame, "usuario valido",
-						"Exito", JOptionPane.OK_OPTION);
-			}
-		}
-		else if(e.getSource() == btnCancel) {
-			this.u = null;
-			this.frame.setVisible(false);
-		}
-
+		});
+	}
+	private void addManejadorBtnCancel(JButton btnCancel) {
+		
 	}
 
 }
