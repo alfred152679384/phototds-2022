@@ -17,6 +17,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
@@ -27,7 +28,7 @@ import um.tds.phototds.clasesFuncionales.Controlador;
 public class LoginPanel{
 
 	private JFrame frame;
-	private JTextArea txtrNombreDeUsuario;
+	private JTextField txtrNombreDeUsuario;
 	private JPasswordField passwordField;
 	//	//Repositorios
 	//	private RepoUsuarios repoUsers;
@@ -39,6 +40,7 @@ public class LoginPanel{
 	}
 
 	public void mostrarVentana() {
+		frame.setResizable(false);
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}
@@ -72,9 +74,8 @@ public class LoginPanel{
 		JPanel panelUsuario = new JPanel();
 		panelTexto.add(panelUsuario);
 
-		txtrNombreDeUsuario = new JTextArea();
+		txtrNombreDeUsuario = new JTextField();
 		txtrNombreDeUsuario.setText("nombre de usuario o email");
-		txtrNombreDeUsuario.setRows(1);
 		txtrNombreDeUsuario.setColumns(44);
 		txtrNombreDeUsuario.setBorder(new BevelBorder(BevelBorder.LOWERED, new Color(0, 0, 0), null, null, null));
 
@@ -149,6 +150,8 @@ public class LoginPanel{
 					System.out.println("loged");
 					//					VentanaPrincipal window = new VentanaPrincipal();
 					//					window.mostrarVentana();
+					JOptionPane.showMessageDialog(frame, "Iniciando sesión correctamente",
+							"Loged", JOptionPane.OK_OPTION);
 					frame.dispose();
 				} 
 				else {
@@ -162,8 +165,8 @@ public class LoginPanel{
 	private void addManejadorBtnRegister(JButton btnRegister) {
 		btnRegister.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				RegisterUserPanel v = new RegisterUserPanel();
-				v.mostrarVentana();
+				RegisterUserPanel v = new RegisterUserPanel(frame);
+				v.setVisible(true);
 			}			
 		});
 	}

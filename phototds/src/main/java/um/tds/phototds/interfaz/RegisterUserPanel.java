@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -25,13 +26,14 @@ import javax.swing.border.LineBorder;
 import um.tds.phototds.clasesFuncionales.Controlador;
 import um.tds.phototds.clasesFuncionales.Usuario;
 
-public class RegisterUserPanel{
+public class RegisterUserPanel extends JDialog{
 	//Constantes
 	private static int DEFAULT_H = 600;
 	private static int DEFAULT_W = 400;
 	private static int DEFAULT_COLUMNS = 30;
 	//variables
-	private JFrame frame;
+	private JDialog registerUserInterfaz;
+	//private JFrame frame;
 	private JTextField txtEmail;
 	private JTextField txtNombre;
 	private JTextField txtUsuario;
@@ -41,25 +43,25 @@ public class RegisterUserPanel{
 	/**
 	 * Create the application.
 	 */
-	public RegisterUserPanel() {
+	public RegisterUserPanel(JFrame owner) {
+		super(owner,"Registro de Usuario",true);
+		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		this.setResizable(false);
 		initialize();
 	}
-	
-	public void mostrarVentana() {
-		frame.setVisible(true);
-	}
+
+	//	public void mostrarVentana() {
+	//		frame.setVisible(true);
+	//	}
 
 	/**
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
-		frame = new JFrame("Registro de Usuario");
-		frame.setBounds(100, 100, DEFAULT_W, DEFAULT_H);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+		this.setBounds(500, 100, DEFAULT_W, DEFAULT_H);
 		//Creamos el panel general
 		JPanel panelGeneral = new JPanel();
-		frame.getContentPane().add(panelGeneral);
+		this.getContentPane().add(panelGeneral);
 		panelGeneral.setLayout(new BorderLayout());
 
 		//Creamos elementos dentro del border-layout
@@ -173,6 +175,7 @@ public class RegisterUserPanel{
 		//--->Elementos del panel sur
 		panelSur.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		JButton btnOK = new JButton("OK");
+		addManejadorBtnOK(btnOK);
 		JButton btnCancel = new JButton("Cancel");
 		panelSur.add(btnOK);
 		panelSur.add(btnCancel);
@@ -181,18 +184,20 @@ public class RegisterUserPanel{
 	private void addManejadorBtnOK(JButton btnOK) {
 		btnOK.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (Controlador.getSingleton().registerUser(txtNombre.getText(), txtUsuario.getText(), txtCont.getText(), txtFeNa.getText())) {
-					System.out.println("registered");
+				if ( Controlador.getSingleton().registerUser(txtEmail.getText(),txtNombre.getText(), txtUsuario.getText(), txtCont.getText(), txtFeNa.getText(), null
+						)) {
+					JOptionPane.showMessageDialog(RegisterUserPanel.this, "Usuario registrado correctamente");
+					RegisterUserPanel.this.dispose();
 				}
 				else {
-					JOptionPane.showMessageDialog(frame, "Nombre de usuario o contraseña no valido",
+					JOptionPane.showMessageDialog(RegisterUserPanel.this, "El usuario ya existe",
 							"Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		});
 	}
 	private void addManejadorBtnCancel(JButton btnCancel) {
-		
+
 	}
 
 }
