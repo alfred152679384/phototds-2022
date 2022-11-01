@@ -23,8 +23,8 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
-import um.tds.phototds.clasesFuncionales.Controlador;
 import um.tds.phototds.clasesFuncionales.Usuario;
+import um.tds.phototds.controlador.Controlador;
 
 public class RegisterUserPanel extends JDialog{
 	//Constantes

@@ -3,6 +3,7 @@ package um.tds.phototds.clasesFuncionales;
 import java.time.LocalDate;
 
 public class Usuario {
+	private int id;
 	private String email;
 	private String nombre;
 	private String usuario;

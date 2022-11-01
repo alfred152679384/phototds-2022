@@ -1,23 +1,27 @@
-package um.tds.phototds.clasesFuncionales;
+package um.tds.phototds.controlador;
 
 import java.time.LocalDate;
 
 import javax.swing.JTextField;
 
-public final class Controlador {
-	private static Controlador singleton;
+import um.tds.phototds.clasesFuncionales.RepoUsuarios;
+import um.tds.phototds.clasesFuncionales.Usuario;
+
+public enum Controlador {
+	INSTANCE;
+//	private static Controlador singleton;
 	private RepoUsuarios repoUsers;
 
 	private Controlador() {
 		repoUsers = new RepoUsuarios();
 	}
 
-	public static Controlador getSingleton() {
-		if(singleton == null) {
-			singleton = new Controlador();
-		}
-		return singleton;
-	}
+//	public static Controlador getSingleton() {
+//		if(singleton == null) {
+//			singleton = new Controlador();
+//		}
+//		return singleton;
+//	}
 
 	public boolean loginUser(String u, String p) {
 		return repoUsers.login(u, p);
@@ -27,13 +31,5 @@ public final class Controlador {
 		Usuario u = new Usuario(email,nomb,usuario,cont,null,null);
 		return repoUsers.addUsuario(u);
 	}
-
-	/*
-	 * private JTextField txtEmail;
-	private JTextField txtNombre;
-	private JTextField txtUsuario;
-	private JTextField txtCont;
-	private JTextField txtFeNa;
-	 */
 
 }
