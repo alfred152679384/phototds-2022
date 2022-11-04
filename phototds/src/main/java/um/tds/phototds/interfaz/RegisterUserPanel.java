@@ -23,8 +23,8 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
-import um.tds.phototds.clasesFuncionales.Usuario;
 import um.tds.phototds.controlador.Controlador;
+import um.tds.phototds.dominio.Usuario;
 
 public class RegisterUserPanel extends JDialog{
 	//Constantes
@@ -184,8 +184,7 @@ public class RegisterUserPanel extends JDialog{
 	private void addManejadorBtnOK(JButton btnOK) {
 		btnOK.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if ( Controlador.getSingleton().registerUser(txtEmail.getText(),txtNombre.getText(), txtUsuario.getText(), txtCont.getText(), txtFeNa.getText(), null
-						)) {
+				if ( Controlador.INSTANCE.registerUser(txtUsuario.getText(),txtNombre.getText(),txtEmail.getText(), txtCont.getText(), txtFeNa.getText(), null, null)) {
 					JOptionPane.showMessageDialog(RegisterUserPanel.this, "Usuario registrado correctamente");
 					RegisterUserPanel.this.dispose();
 				}

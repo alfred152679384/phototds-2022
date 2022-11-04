@@ -1,4 +1,4 @@
-package um.tds.phototds.clasesFuncionales;
+package um.tds.phototds.dominio;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -6,18 +6,17 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import umu.tds.dao.DAOException;
-import umu.tds.dao.FactoriaDAO;
-import umu.tds.dominio.Usuario;
+import um.tds.phototds.dao.*;
 
 public enum RepoUsuarios {
-	INSTANCE;
+	//Atributos
+	INSTANCE;//Singleton
 	private FactoriaDAO factoria;
-
 	private HashMap<Integer, Usuario> usuariosPorID;
 	private HashMap<String, Usuario> usuariosPorLogin;
-
-	private RepositorioUsuarios (){
+	
+	//Contstructor privado (singleton)
+	private RepoUsuarios(){
 		usuariosPorID = new HashMap<Integer, Usuario>();
 		usuariosPorLogin = new HashMap<String, Usuario>();
 		
@@ -34,7 +33,7 @@ public enum RepoUsuarios {
 		List<Usuario> listausuarios = factoria.getUsuarioDAO().getAll();
 		for (Usuario usuario : listausuarios) {
 			usuariosPorID.put(usuario.getId(), usuario);
-			usuariosPorLogin.put(usuario.getLogin(), usuario);
+			usuariosPorLogin.put(usuario.getUsername(), usuario);
 		}
 	}
 	
@@ -52,12 +51,12 @@ public enum RepoUsuarios {
 	
 	public void addUsuario(Usuario usuario) {
 		usuariosPorID.put(usuario.getId(), usuario);
-		usuariosPorLogin.put(usuario.getLogin(), usuario);
+		usuariosPorLogin.put(usuario.getUsername(), usuario);
 	}
 	
 	public void removeUsuario(Usuario usuario) {
 		usuariosPorID.remove(usuario.getId());
-		usuariosPorLogin.remove(usuario.getLogin());
+		usuariosPorLogin.remove(usuario.getUsername());
 	}
 	
 	

@@ -1,35 +1,61 @@
 package um.tds.phototds.controlador;
 
-import java.time.LocalDate;
-
-import javax.swing.JTextField;
-
-import um.tds.phototds.clasesFuncionales.RepoUsuarios;
-import um.tds.phototds.clasesFuncionales.Usuario;
+import um.tds.phototds.dao.*;
+import um.tds.phototds.dominio.*;
 
 public enum Controlador {
-	INSTANCE;
-//	private static Controlador singleton;
-	private RepoUsuarios repoUsers;
-
+	//Atributos
+	INSTANCE;//Singleton
+	private Usuario usuario;
+	private FactoriaDAO factoria;
+	
+	//Contructor privado (singleton)
 	private Controlador() {
-		repoUsers = new RepoUsuarios();
+		this.usuario = null;
+		try {
+			factoria = FactoriaDAO.getInstancia();
+		} catch (DAOException e) {
+			e.printStackTrace();
+		}
 	}
 
-//	public static Controlador getSingleton() {
-//		if(singleton == null) {
-//			singleton = new Controlador();
-//		}
-//		return singleton;
-//	}
-
-	public boolean loginUser(String u, String p) {
-		return repoUsers.login(u, p);
+	//Getters & Setters
+	public Usuario getUsuarioActual() {
+		return this.usuario;
+	}
+	
+	
+	//Funcionalidad
+	public boolean loginUser(String username, String p) {
+		Usuario aux = RepoUsuarios.INSTANCE.findUsuario(username);
+		if(aux != null && aux.getCont().equals(p)) {
+			this.usuario = aux;
+			System.out.println(aux.toString());
+			return true;
+		}
+		return false;
+		
 	}
 
-	public boolean registerUser(String email, String nomb, String usuario, String cont, String feNa, String pres) {//Hay que ampliar los datos con los campos que se piden
-		Usuario u = new Usuario(email,nomb,usuario,cont,null,null);
-		return repoUsers.addUsuario(u);
+	public boolean registerUser(String username, String nombre, String email, String cont, String fechN, String foto, String presentacion) {//Hay que ampliar los datos con los campos que se piden
+		if(RepoUsuarios.INSTANCE.findUsuario(username) != null) {
+			return false;
+		}
+		Usuario u = new Usuario(username, nombre, email, cont, fechN, foto, presentacion); 
+		UsuarioDAO daoUser = factoria.getUsuarioDAO();
+		daoUser.create(u);
+		u.toString();		
+		RepoUsuarios.INSTANCE.addUsuario(u);
+		return true;
+	}
+	
+	public boolean deleteUser(Usuario username) {
+		if(RepoUsuarios.INSTANCE.findUsuario(username.getUsername()) == null) {
+			return false;
+		}
+		UsuarioDAO daoUser = factoria.getUsuarioDAO();
+		daoUser.delete(username);
+		return true;
 	}
 
 }

@@ -2,7 +2,7 @@ package um.tds.phototds.dao;
 
 import java.util.List;
 
-import umu.tds.dominio.Usuario;
+import um.tds.phototds.dominio.Usuario;
 
 public interface UsuarioDAO {
 	

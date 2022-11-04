@@ -1,5 +1,6 @@
 package um.tds.phototds.dao;
 
+import java.net.ConnectException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,7 +9,7 @@ import java.util.List;
 
 import tds.driver.FactoriaServicioPersistencia;
 import tds.driver.ServicioPersistencia;
-import um.tds.phototds.clasesFuncionales.Usuario;
+import um.tds.phototds.dominio.Usuario;
 import beans.Entidad;
 import beans.Propiedad;
 
@@ -18,34 +19,38 @@ import beans.Propiedad;
  * 
  */
 public final class TDSUsuarioDAO implements UsuarioDAO {
-
 	private static final String USUARIO = "Usuario";
-
+	private static final String USERNAME = "username";
 	private static final String NOMBRE = "nombre";
-	private static final String APELLIDOS = "apellidos";
 	private static final String EMAIL = "email";
-	private static final String LOGIN = "login";
 	private static final String PASSWORD = "password";
 	private static final String FECHA_NACIMIENTO = "fechaNacimiento";
+	private static final String FOTO = "foto";
+	private static final String PRESENTACION = "presentacion";
 
 	private ServicioPersistencia servPersistencia;
 	private SimpleDateFormat dateFormat;
 
 	public TDSUsuarioDAO() {
-		servPersistencia = FactoriaServicioPersistencia.getInstance().getServicioPersistencia();
-		dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+		try {
+			servPersistencia = FactoriaServicioPersistencia.getInstance().getServicioPersistencia();
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 	}
 
 	private Usuario entidadToUsuario(Entidad eUsuario) {
 
+		String username = servPersistencia.recuperarPropiedadEntidad(eUsuario, USERNAME);
 		String nombre = servPersistencia.recuperarPropiedadEntidad(eUsuario, NOMBRE);
-		String apellidos = servPersistencia.recuperarPropiedadEntidad(eUsuario, APELLIDOS);
 		String email = servPersistencia.recuperarPropiedadEntidad(eUsuario, EMAIL);
-		String login = servPersistencia.recuperarPropiedadEntidad(eUsuario, LOGIN);
 		String password = servPersistencia.recuperarPropiedadEntidad(eUsuario, PASSWORD);
 		String fechaNacimiento = servPersistencia.recuperarPropiedadEntidad(eUsuario, FECHA_NACIMIENTO);
-
-		Usuario usuario = new Usuario(nombre, apellidos, email, login, password, fechaNacimiento);
+		String foto = servPersistencia.recuperarPropiedadEntidad(eUsuario, FOTO);
+		String presentacion = servPersistencia.recuperarPropiedadEntidad(eUsuario, PRESENTACION);
+		
+		Usuario usuario = new Usuario(username, nombre, email, password, fechaNacimiento, foto, presentacion);
 		usuario.setId(eUsuario.getId());
 
 		return usuario;
@@ -55,10 +60,15 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 		Entidad eUsuario = new Entidad();
 		eUsuario.setNombre(USUARIO);
 
-		eUsuario.setPropiedades(new ArrayList<Propiedad>(Arrays.asList(new Propiedad(NOMBRE, usuario.getNombre()),
-				new Propiedad(APELLIDOS, usuario.getApellidos()), new Propiedad(EMAIL, usuario.getEmail()),
-				new Propiedad(LOGIN, usuario.getLogin()), new Propiedad(PASSWORD, usuario.getPassword()),
-				new Propiedad(FECHA_NACIMIENTO, usuario.getFechaNacimiento()))));
+		eUsuario.setPropiedades(new ArrayList<Propiedad>(Arrays.asList(
+				new Propiedad(USERNAME, usuario.getUsername()),
+				new Propiedad(NOMBRE, usuario.getNombre()), 
+				new Propiedad(EMAIL, usuario.getEmail()),
+				new Propiedad(PASSWORD, usuario.getCont()),	
+				new Propiedad(FECHA_NACIMIENTO, usuario.getFechN()),
+				new Propiedad(FOTO, usuario.getFoto()), 
+				new Propiedad(PRESENTACION, usuario.getPresentación())
+				)));
 		return eUsuario;
 	}
 
@@ -83,17 +93,15 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 
 		for (Propiedad prop : eUsuario.getPropiedades()) {
 			if (prop.getNombre().equals(PASSWORD)) {
-				prop.setValor(usuario.getPassword());
+				prop.setValor(usuario.getCont());
 			} else if (prop.getNombre().equals(EMAIL)) {
 				prop.setValor(usuario.getEmail());
 			} else if (prop.getNombre().equals(NOMBRE)) {
 				prop.setValor(usuario.getNombre());
-			} else if (prop.getNombre().equals(APELLIDOS)) {
-				prop.setValor(usuario.getApellidos());
-			} else if (prop.getNombre().equals(LOGIN)) {
-				prop.setValor(usuario.getLogin());
+			} else if (prop.getNombre().equals(USERNAME)) {
+				prop.setValor(usuario.getUsername());
 			} else if (prop.getNombre().equals(FECHA_NACIMIENTO)) {
-				prop.setValor(dateFormat.format(usuario.getFechaNacimiento()));
+				prop.setValor(dateFormat.format(usuario.getFechN()));
 			}
 			servPersistencia.modificarPropiedad(prop);
 		}

@@ -145,7 +145,7 @@ public class LoginPanel{
 	private void addManejadorBtnLogin(JButton btnLogin) {
 		btnLogin.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				boolean login = Controlador.getSingleton().loginUser(txtrNombreDeUsuario.getText(), passwordField.getText());
+				boolean login = Controlador.INSTANCE.loginUser(txtrNombreDeUsuario.getText(), passwordField.getText());
 				if (login) {
 					System.out.println("loged");
 					//					VentanaPrincipal window = new VentanaPrincipal();
