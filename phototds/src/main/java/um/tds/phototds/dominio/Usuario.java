@@ -1,12 +1,11 @@
 package um.tds.phototds.dominio;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 public class Usuario {
 	//Constantes
-	private static final String SPACE = " ";
-	private static final int TAM_FECHA = 3;
 	
 	//Atributos
 	private int id;
@@ -17,8 +16,13 @@ public class Usuario {
 	private String fechN;
 	private String foto;
 	private String presentación;
+	private boolean isPremium;//Añadir a Persistencia
+	private LinkedList<Publicacion> publicaciones;
+	private LinkedList<Usuario> seguidores;
+	private LinkedList<Usuario> seguidos;
 
-	//Constructor
+	
+	//Constructor básico para nuevo usuario
 	public Usuario(String username, String nombre, String email, String cont, String fechN, String foto, String presentación) {
 		super();
 		this.username = username;
@@ -27,11 +31,25 @@ public class Usuario {
 		this.cont = cont;
 		this.fechN = fechN;
 		this.foto = foto;
-		this.presentación = presentación;//puede ser null;
-		//faltan cosas?;
+		this.presentación = presentación;
+		this.isPremium = false;
+		this.publicaciones = new LinkedList<Publicacion>();
+		this.seguidores = new LinkedList<Usuario>();
+		this.seguidos = new LinkedList<Usuario>();
+	}
+	
+	
+	//Constructor DAO
+	public Usuario(String username, String nombre, String email, String cont, String fechN, String foto, String presentacion,
+			String isPremium, String publicaciones, String seguidores, String seguidos) {
+		this(username, nombre, email, cont, fechN, foto, presentacion);
+		if(isPremium.equals("true"))
+			this.isPremium = true;
+		else this.isPremium = false;
+		//Crear cargador xml de las fotos (creo que va aquí) (aunque también habrá otro en repo)
 	}
 
-	//Get-Set
+	//getters-setters
 	public int getId() {
 		return id;
 	}
@@ -96,11 +114,60 @@ public class Usuario {
 		this.presentación = presentación;
 	}
 
-	@Override
-	public String toString() {
-		return "Usuario [id=" + id + ", username=" + username + ", nombre=" + nombre + ", email=" + email + ", cont="
-				+ cont + ", fechN=" + fechN + ", foto=" + foto + ", presentación=" + presentación + "]";
+
+	public boolean isPremium() {
+		return isPremium;
 	}
+	
+	public String isPremiumString() {
+		if(this.isPremium)
+			return "true";
+		return "false";
+	}
+	
+	public void setPremium(boolean premium) {
+		this.isPremium = premium;
+	}
+
+
+	public List<Publicacion> getListaPubli() {
+		return Collections.unmodifiableList(this.publicaciones);
+	}
+	
+	public String getPubliString() {
+		return this.publicaciones.toString();
+	}
+
+
+	public List<Usuario> getSeguidores() {
+		return Collections.unmodifiableList(this.seguidores);
+	}
+	
+	public String getSeguidoresString() {
+		return this.seguidores.toString();
+	}
+
+	
+	public List<Usuario> getSeguidos() {
+		return Collections.unmodifiableList(this.seguidos);
+	}
+	
+	public String getSeguidosString() {
+		return this.seguidos.toString();
+	}
+
+	//Funcionalidad
+
+//	@Override
+//	public String toString() {
+//		return "Usuario [id=" + id + ", username=" + username + ", nombre=" + nombre + ", email=" + email + ", cont="
+//				+ cont + ", fechN=" + fechN + ", foto=" + foto + ", presentación=" + presentación + ", isPremium="
+//				+ isPremium + ", publicaciones=" + publicaciones + ", seguidores=" + seguidores + ", seguidos="
+//				+ seguidos + "]";
+//	}
+	
+
+
 	
 	
 	

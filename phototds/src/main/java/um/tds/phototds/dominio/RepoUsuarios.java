@@ -9,10 +9,10 @@ import java.util.List;
 import um.tds.phototds.dao.*;
 
 public enum RepoUsuarios {
-	//Atributos
 	INSTANCE;//Singleton
+	//Atributos
 	private FactoriaDAO factoria;
-	private HashMap<Integer, Usuario> usuariosPorID;
+	private HashMap<Integer, Usuario> usuariosPorID; 
 	private HashMap<String, Usuario> usuariosPorLogin;
 	
 	//Contstructor privado (singleton)
@@ -41,8 +41,8 @@ public enum RepoUsuarios {
 		return new LinkedList<Usuario>(usuariosPorLogin.values());
 	}
 	
-	public Usuario findUsuario(String login) {
-		return usuariosPorLogin.get(login);
+	public Usuario findUsuario(String username) {
+		return usuariosPorLogin.get(username);
 	}
 
 	public Usuario findUsuario(int id) {

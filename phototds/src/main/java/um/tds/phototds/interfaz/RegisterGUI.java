@@ -26,14 +26,13 @@ import javax.swing.border.LineBorder;
 import um.tds.phototds.controlador.Controlador;
 import um.tds.phototds.dominio.Usuario;
 
-public class RegisterUserPanel extends JDialog{
+public class RegisterGUI extends JDialog{
 	//Constantes
 	private static int DEFAULT_H = 600;
 	private static int DEFAULT_W = 400;
 	private static int DEFAULT_COLUMNS = 30;
 	//variables
 	private JDialog registerUserInterfaz;
-	//private JFrame frame;
 	private JTextField txtEmail;
 	private JTextField txtNombre;
 	private JTextField txtUsuario;
@@ -43,16 +42,12 @@ public class RegisterUserPanel extends JDialog{
 	/**
 	 * Create the application.
 	 */
-	public RegisterUserPanel(JFrame owner) {
+	public RegisterGUI(JFrame owner) {
 		super(owner,"Registro de Usuario",true);
 		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setResizable(false);
 		initialize();
 	}
-
-	//	public void mostrarVentana() {
-	//		frame.setVisible(true);
-	//	}
 
 	/**
 	 * Initialize the contents of the frame.
@@ -177,6 +172,7 @@ public class RegisterUserPanel extends JDialog{
 		JButton btnOK = new JButton("OK");
 		addManejadorBtnOK(btnOK);
 		JButton btnCancel = new JButton("Cancel");
+		addManejadorBtnCancel(btnCancel);
 		panelSur.add(btnOK);
 		panelSur.add(btnCancel);
 	}
@@ -184,19 +180,31 @@ public class RegisterUserPanel extends JDialog{
 	private void addManejadorBtnOK(JButton btnOK) {
 		btnOK.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if ( Controlador.INSTANCE.registerUser(txtUsuario.getText(),txtNombre.getText(),txtEmail.getText(), txtCont.getText(), txtFeNa.getText(), null, null)) {
-					JOptionPane.showMessageDialog(RegisterUserPanel.this, "Usuario registrado correctamente");
-					RegisterUserPanel.this.dispose();
-				}
-				else {
-					JOptionPane.showMessageDialog(RegisterUserPanel.this, "El usuario ya existe",
-							"Error", JOptionPane.ERROR_MESSAGE);
+				try {
+					if ( Controlador.INSTANCE.registerUser(txtUsuario.getText(),txtNombre.getText(),txtEmail.getText(), txtCont.getText(), txtFeNa.getText(), null, null)) {
+						JOptionPane.showMessageDialog(RegisterGUI.this, "Usuario registrado correctamente");
+						RegisterGUI.this.dispose();
+					}
+					else {
+						JOptionPane.showMessageDialog(RegisterGUI.this, "El usuario ya existe",
+								"Error", JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+				}catch(Exception ex) {
+					System.out.println("Intentelo de nuevo");
+					System.err.println("El usuario ya existe - intentelo de nuevo");
+					ex.printStackTrace();
 				}
 			}
 		});
 	}
+	
 	private void addManejadorBtnCancel(JButton btnCancel) {
-
+		btnCancel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			RegisterGUI.this.dispose();
+			}
+		});
 	}
 
 }

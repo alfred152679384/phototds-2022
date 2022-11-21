@@ -9,9 +9,17 @@ public final class TDSFactoriaDAO extends FactoriaDAO {
 	
 	public TDSFactoriaDAO() {	}
 	
-	@Override
+	@Override //Implementa la clase de su padre
 	public TDSUsuarioDAO getUsuarioDAO() {	
 		return new TDSUsuarioDAO(); 
 	}
 
+	@Override
+	public TDSPublicacionDAO getPublicacionDAO() {
+		return new TDSPublicacionDAO();
+	}
+
+	
+
+	
 }

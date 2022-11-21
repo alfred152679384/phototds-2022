@@ -2,7 +2,6 @@ package um.tds.phototds.interfaz;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -10,7 +9,6 @@ import java.awt.event.ActionListener;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -25,9 +23,9 @@ import javax.swing.border.LineBorder;
 
 import um.tds.phototds.controlador.Controlador;
 
-public class LoginPanel{
+public class LoginGUI{
 
-	private JFrame frame;
+	private JFrame frameLogin;
 	private JTextField txtrNombreDeUsuario;
 	private JPasswordField passwordField;
 	//	//Repositorios
@@ -35,28 +33,28 @@ public class LoginPanel{
 	//	//Ventanas
 	//	private RegisterUserPanel registerPanel;
 
-	public LoginPanel() {
+	public LoginGUI() {
 		initialize();
 	}
 
 	public void mostrarVentana() {
-		frame.setResizable(false);
-		frame.setLocationRelativeTo(null);
-		frame.setVisible(true);
+		frameLogin.setResizable(false);
+		frameLogin.setLocationRelativeTo(null);
+		frameLogin.setVisible(true);
 	}
 
 	/**
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
-		frame = new JFrame("Inicio de Sesión");
-		frame.setBounds(100, 100, 537, 600);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
+		frameLogin = new JFrame("Inicio de Sesión");
+		frameLogin.setBounds(100, 100, 537, 600);
+		frameLogin.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frameLogin.getContentPane().setLayout(new BoxLayout(frameLogin.getContentPane(), BoxLayout.Y_AXIS));
 
 		JPanel panelSuperior = new JPanel();
 		panelSuperior.setBorder(new CompoundBorder(new EmptyBorder(0, 10, 20, 10), new LineBorder(new Color(0, 0, 0), 2)));
-		frame.getContentPane().add(panelSuperior);
+		frameLogin.getContentPane().add(panelSuperior);
 		panelSuperior.setLayout(new BoxLayout(panelSuperior, BoxLayout.Y_AXIS));
 
 		JPanel panelTitulo = new JPanel();
@@ -103,7 +101,7 @@ public class LoginPanel{
 
 		JPanel panelInferior = new JPanel();
 		panelInferior.setBorder(new CompoundBorder(new EmptyBorder(10, 5, 20, 5), new BevelBorder(BevelBorder.RAISED, null, null, null, null)));
-		frame.getContentPane().add(panelInferior);
+		frameLogin.getContentPane().add(panelInferior);
 		panelInferior.setLayout(new BoxLayout(panelInferior, BoxLayout.Y_AXIS));
 
 		JPanel pTexto = new JPanel();
@@ -147,15 +145,13 @@ public class LoginPanel{
 			public void actionPerformed(ActionEvent e) {
 				boolean login = Controlador.INSTANCE.loginUser(txtrNombreDeUsuario.getText(), passwordField.getText());
 				if (login) {
-					System.out.println("loged");
-					//					VentanaPrincipal window = new VentanaPrincipal();
-					//					window.mostrarVentana();
-					JOptionPane.showMessageDialog(frame, "Iniciando sesión correctamente",
-							"Loged", JOptionPane.OK_OPTION);
-					frame.dispose();
+					PrincipalGUI window = new PrincipalGUI();
+					window.mostrarVentana();
+					System.out.println("ok");
+					frameLogin.dispose();
 				} 
 				else {
-					JOptionPane.showMessageDialog(frame, "Nombre de usuario o contraseña no valido",
+					JOptionPane.showMessageDialog(frameLogin, "Nombre de usuario o contraseña no valido",
 							"Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}
@@ -165,7 +161,7 @@ public class LoginPanel{
 	private void addManejadorBtnRegister(JButton btnRegister) {
 		btnRegister.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				RegisterUserPanel v = new RegisterUserPanel(frame);
+				RegisterGUI v = new RegisterGUI(frameLogin);
 				v.setVisible(true);
 			}			
 		});

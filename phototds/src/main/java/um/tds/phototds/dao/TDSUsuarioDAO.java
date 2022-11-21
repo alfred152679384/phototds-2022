@@ -1,6 +1,5 @@
 package um.tds.phototds.dao;
 
-import java.net.ConnectException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +26,10 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 	private static final String FECHA_NACIMIENTO = "fechaNacimiento";
 	private static final String FOTO = "foto";
 	private static final String PRESENTACION = "presentacion";
+	private static final String PREMIUM = "isPremium";
+	private static final String PUBLICACIONES = "listaPublicaciones";
+	private static final String SEGUIDORES = "listaSeguidores";
+	private static final String SEGUIDOS = "listaSeguidos";
 
 	private ServicioPersistencia servPersistencia;
 	private SimpleDateFormat dateFormat;
@@ -41,7 +44,7 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 	}
 
 	private Usuario entidadToUsuario(Entidad eUsuario) {
-
+		//Recupeerar Usuarios del servidor
 		String username = servPersistencia.recuperarPropiedadEntidad(eUsuario, USERNAME);
 		String nombre = servPersistencia.recuperarPropiedadEntidad(eUsuario, NOMBRE);
 		String email = servPersistencia.recuperarPropiedadEntidad(eUsuario, EMAIL);
@@ -49,8 +52,13 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 		String fechaNacimiento = servPersistencia.recuperarPropiedadEntidad(eUsuario, FECHA_NACIMIENTO);
 		String foto = servPersistencia.recuperarPropiedadEntidad(eUsuario, FOTO);
 		String presentacion = servPersistencia.recuperarPropiedadEntidad(eUsuario, PRESENTACION);
+		String isPremium = servPersistencia.recuperarPropiedadEntidad(eUsuario, PREMIUM);
+		String listaPubli = servPersistencia.recuperarPropiedadEntidad(eUsuario, PUBLICACIONES);
+		String listaSeguidores = servPersistencia.recuperarPropiedadEntidad(eUsuario, SEGUIDORES);
+		String listaSeguidos = servPersistencia.recuperarPropiedadEntidad(eUsuario, SEGUIDOS);
 		
-		Usuario usuario = new Usuario(username, nombre, email, password, fechaNacimiento, foto, presentacion);
+		Usuario usuario = new Usuario(username, nombre, email, password, fechaNacimiento, foto, presentacion,
+				isPremium, listaPubli, listaSeguidores, listaSeguidos);
 		usuario.setId(eUsuario.getId());
 
 		return usuario;
@@ -67,7 +75,11 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 				new Propiedad(PASSWORD, usuario.getCont()),	
 				new Propiedad(FECHA_NACIMIENTO, usuario.getFechN()),
 				new Propiedad(FOTO, usuario.getFoto()), 
-				new Propiedad(PRESENTACION, usuario.getPresentación())
+				new Propiedad(PRESENTACION, usuario.getPresentación()),
+				new Propiedad(PREMIUM, usuario.isPremiumString()),
+				new Propiedad(PUBLICACIONES, usuario.getPubliString()),
+				new Propiedad(SEGUIDORES, usuario.getSeguidoresString()),
+				new Propiedad(SEGUIDOS, usuario.getSeguidosString())
 				)));
 		return eUsuario;
 	}
@@ -102,6 +114,12 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 				prop.setValor(usuario.getUsername());
 			} else if (prop.getNombre().equals(FECHA_NACIMIENTO)) {
 				prop.setValor(dateFormat.format(usuario.getFechN()));
+			} else if (prop.getNombre().equals(FOTO)) {
+				prop.setValor(usuario.getFoto());
+			} else if (prop.getNombre().equals(PRESENTACION)) {
+				prop.setValor(usuario.getPresentación());
+			} else if (prop.getNombre().equals(PREMIUM)) {
+				prop.setValor(usuario.isPremiumString());
 			}
 			servPersistencia.modificarPropiedad(prop);
 		}
