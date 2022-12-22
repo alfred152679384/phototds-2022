@@ -4,8 +4,13 @@ import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
+
+import um.tds.phototds.controlador.Controlador;
+
 import javax.imageio.ImageIO;
+import javax.swing.AbstractListModel;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import java.awt.BorderLayout;
@@ -109,11 +114,14 @@ public class PrincipalGUI extends JFrame {
 		JPanel panelCentral = new JPanel();
 		panelGeneral.add(panelCentral, BorderLayout.CENTER);
 		
-		JList listFoto = new JList();
+		//Ponemos las fotos en en JList
+		JList<JPanel> listFoto = new JList<>();
+		
+		listFoto.setLayoutOrientation(JList.VERTICAL);
 		panelCentral.add(listFoto);
 		
-		Scrollbar scrollbar = new Scrollbar();
-		panelCentral.add(scrollbar);
+		JScrollPane scroll = new JScrollPane();
+		scroll.setViewportView(listFoto);
 	}
 
 }

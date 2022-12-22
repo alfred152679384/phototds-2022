@@ -43,7 +43,7 @@ public class AddFotoGUI extends JDialog {//Añadir fotos por drag and drop o del
 		getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
 		this.getContentPane().add(panelGeneral);
 		panelGeneral.setContentType("text/html");
-		panelGeneral.setText("<h1>Agregar Foto</h1><p>Anímate a compartir una foto con "
+		panelGeneral.setText("<h1> Agregar Foto</h1><p> Anímate a compartir una foto con "
 				+ "tus amigos. <br> Puedes arrastrar el fichero aquí. </p>");
 				panelGeneral.setEditable(false);
 				panelGeneral.setDropTarget(new DropTarget() {
@@ -57,6 +57,7 @@ public class AddFotoGUI extends JDialog {//Añadir fotos por drag and drop o del
 								//Tenemos el fichero
 								ShowImageGUI w = new ShowImageGUI(owner, file);
 								w.setVisible(true);
+								owner.dispose();
 							}
 						} catch (Exception ex) {
 							ex.printStackTrace();

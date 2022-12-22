@@ -21,10 +21,11 @@ public class Publicacion {
 		this.titulo = titulo;
 		this.fecha = LocalDate.now().toString();
 		this.descripcion = descripcion;
+		this.hashtags = new LinkedList<String>();
 		for(int i=0; i< hashtags.length; i++) {
 			this.hashtags.add(hashtags[i]);
 		}
-	
+		this.comentarios = new LinkedList<Comentario>();
 	}
 	
 	//Constructor DAO
@@ -78,6 +79,9 @@ public class Publicacion {
 	}
 	
 	public String getComentariosString() {
+		//TODO: Hay que devolver los comentarios formateados, supongo
+		if(this.comentarios.isEmpty()) 
+			return null;
 		return this.comentarios.toString();
 	}
 	

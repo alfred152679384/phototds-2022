@@ -12,8 +12,8 @@ public class Foto extends Publicacion {
 
 	
 	//Constructor básico
-	public Foto(String titulo, String fecha, String descripcion, String path) {
-		super(titulo, fecha, descripcion);
+	public Foto(String titulo, String descripcion, String path) {
+		super(titulo, descripcion, new String[0]);//TODO: Hay que cambiar este array vacio por los hashtag, pero todavía no
 		this.path = path;
 	}
 	
