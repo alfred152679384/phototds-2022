@@ -1,6 +1,7 @@
 package um.tds.phototds.dominio;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -46,14 +47,14 @@ public enum RepoPublicaciones {
 		}
 	}
 	
-	public Object[] getFotos() {
+	public List<Foto> getFotos() {
 		ArrayList<Foto> fotos = new ArrayList<Foto>();
 		for(int k : publicaciones.keySet()) {
 			Publicacion p = publicaciones.get(k);
 			if(p instanceof Foto)
 				fotos.add((Foto)p);
 		}
-		return fotos.toArray();
+		return Collections.unmodifiableList(fotos);
 	}
 	
 	public List<Publicacion> findPublicaciones() throws DAOException {

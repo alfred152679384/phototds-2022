@@ -1,6 +1,7 @@
 package um.tds.phototds.controlador;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import um.tds.phototds.dao.*;
 import um.tds.phototds.dominio.*;
@@ -30,8 +31,8 @@ public enum Controlador {
 	}
 
 	// Getters & Setters
-	public Usuario getUsuarioActual() {
-		return this.usuario;
+	public String getUsuarioActual() {
+		return this.usuario.getUsername();
 	}
 
 	// Funcionalidad
@@ -78,7 +79,7 @@ public enum Controlador {
 		return true;
 	}
 	
-	public Object[] getFotos() {
+	public List<Foto> getFotos() {
 		return RepoPublicaciones.INSTANCE.getFotos();	
 	}
 }

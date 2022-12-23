@@ -23,9 +23,9 @@ public class Foto extends Publicacion {
 		return path;
 	}
 
-	public void setPath(String path) {
-		this.path = path;
-	}
+//	public void setPath(String path) {
+//		this.path = path;
+//	}
 	
 	//Funcionalidad
 	
