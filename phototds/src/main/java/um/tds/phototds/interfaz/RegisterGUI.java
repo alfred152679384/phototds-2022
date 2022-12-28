@@ -2,18 +2,31 @@ package um.tds.phototds.interfaz;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Container;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.security.DomainCombiner;
+import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.IOException;
+import java.text.DateFormat;
 import java.time.LocalDate;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Optional;
 
+import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -23,29 +36,39 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
-import um.tds.phototds.controlador.Controlador;
-import um.tds.phototds.dominio.Usuario;
+import com.toedter.calendar.JCalendar;
+import com.toedter.calendar.JDateChooser;
 
-public class RegisterGUI extends JDialog{
-	//Constantes
-	private static int DEFAULT_H = 600;
-	private static int DEFAULT_W = 400;
-	private static int DEFAULT_COLUMNS = 30;
-	//variables
-	private JDialog registerUserInterfaz;
+import um.tds.phototds.controlador.Controlador;
+
+public class RegisterGUI extends JDialog {
+	// Constantes
+	private static final int DEFAULT_H = 600;
+	private static final int DEFAULT_W = 400;
+	private static final int DEFAULT_COLUMNS = 30;
+	private static final int CALENDAR_SIZE = 20;
+
+	// variables
+	private JFrame owner;
+	private JDateChooser chooser;
 	private JTextField txtEmail;
 	private JTextField txtNombre;
 	private JTextField txtUsuario;
-	private JTextField txtCont;
-	private JTextField txtFeNa;
+	private JTextField txtContras;
+	private Optional<String> fotoPerfil;
+	private Optional<String> presentacion;
 
 	/**
 	 * Create the application.
 	 */
 	public RegisterGUI(JFrame owner) {
-		super(owner,"Registro de Usuario",true);
+		super(owner, "Registro de Usuario", true);
+		this.owner = owner;
 		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setResizable(false);
+		this.setBounds(owner.getX(), owner.getY(), DEFAULT_W, DEFAULT_H);
+		this.fotoPerfil = Optional.empty();
+		this.presentacion = Optional.empty();
 		initialize();
 	}
 
@@ -53,121 +76,29 @@ public class RegisterGUI extends JDialog{
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
-		this.setBounds(500, 100, DEFAULT_W, DEFAULT_H);
-		//Creamos el panel general
+		// Creamos el panel general
 		JPanel panelGeneral = new JPanel();
 		this.getContentPane().add(panelGeneral);
 		panelGeneral.setLayout(new BorderLayout());
 
-		//Creamos elementos dentro del border-layout
+		// Creamos elementos dentro del border-layout
+		crearPanelTitulo(panelGeneral);
+		crearPanelDatos(panelGeneral);
+//		crearPanelInferior(panelGeneral);
 
-		//panel norte
-		JPanel panelNorte = new JPanel();
-		panelGeneral.add(panelNorte, BorderLayout.NORTH);
-
-		//--->Elementos del panel norte
-		panelNorte.setLayout(new BoxLayout(panelNorte, BoxLayout.Y_AXIS));
-
-		//------->Dentro del box-layout tenemos que meter paneles
-		JPanel pTitulo = new JPanel();
-		JLabel lbTitulo = new JLabel("Photo TDS");
-		lbTitulo.setFont(new Font("Trebuchet MS", Font.BOLD | Font.ITALIC, 30));
-		pTitulo.add(lbTitulo);
-		panelNorte.add(new JPanel());
-		panelNorte.add(pTitulo);
-
-		JPanel pSubTit = new JPanel();
-		pSubTit.setBorder(new EmptyBorder(10, 10, 0, 10));
-		JTextArea jtSubTit = new JTextArea("Si te registras podrás compartir fotos y"
-				+ " ver las fotos de tus amigos");
-		jtSubTit.setEditable(false);
-		jtSubTit.setBackground(new Color(240, 240, 240));
-		jtSubTit.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		jtSubTit.setWrapStyleWord(true);
-		jtSubTit.setRows(2);
-		jtSubTit.setColumns(DEFAULT_COLUMNS);
-		jtSubTit.setLineWrap(true);
-		//JLabel lbSubTit = new JLabel("Si te registras podrás compartir fotos y"
-		//		+ " ver las fotos de tus amigos");
-		pSubTit.add(jtSubTit);
-		panelNorte.add(new JPanel());
-		panelNorte.add(pSubTit);
-
-		//panel central
-		JPanel panelCentral = new JPanel();
-		panelGeneral.add(panelCentral, BorderLayout.CENTER);
-		panelCentral.setLayout(new BoxLayout(panelCentral,BoxLayout.Y_AXIS));
-		panelCentral.add(new JPanel());//Panel para separación
-
-		//--->Elementos panel central
-		JPanel pEmail = new JPanel();
-		JPanel pNombre = new JPanel();
-		JPanel pUsuario = new JPanel();
-		JPanel pCont = new JPanel();
-
-		txtEmail = new JTextField("Email");
-		txtNombre = new JTextField("Nombre Completo");
-		txtUsuario = new JTextField("Nombre de Usuario");
-		txtCont = new JTextField("Contraseña");
-		txtEmail.setColumns(DEFAULT_COLUMNS);
-		txtNombre.setColumns(DEFAULT_COLUMNS);
-		txtUsuario.setColumns(DEFAULT_COLUMNS);
-		txtCont.setColumns(DEFAULT_COLUMNS);
-		pEmail.add(txtEmail);
-		pNombre.add(txtNombre);
-		pUsuario.add(txtUsuario);
-		pCont.add(txtCont);
-		panelCentral.add(pEmail);
-		panelCentral.add(pNombre);
-		panelCentral.add(pUsuario);
-		panelCentral.add(pCont);
-
-		JPanel pFeNa = new JPanel();
-		JPanel pFoto = new JPanel();
-		JPanel pPres = new JPanel();
-		pFeNa.setLayout(new FlowLayout());
-		pFoto.setLayout(new FlowLayout());
-		pPres.setLayout(new FlowLayout());
-		JLabel lFeNa = new JLabel("Fecha de Nacimiento ");
-		JLabel lFoto = new JLabel("Añadir foto del usuario (opcional) ");
-		JLabel lPres = new JLabel("Añadir presentación (opcional) ");
-		txtFeNa = new JTextField(LocalDate.now().toString());
-		txtFeNa.setToolTipText("yyyy-mm-dd");
-		//tFeNa.s
-		//
-		JButton bFeNa = new JButton();
-		bFeNa.setIcon(new ImageIcon("E:/UNIVERSIDAD/3.%BA/C1/TDS/workspace/TDS_practicas/calendar.ico"));
-		JButton bFoto = new JButton("+");
-		JButton bPres = new JButton("...");
-		pFeNa.setBorder(new LineBorder(Color.black, 1));
-		pFoto.setBorder(new LineBorder(Color.black, 1));
-		pPres.setBorder(new LineBorder(Color.black, 1));
-		pFeNa.add(lFeNa);
-		pFoto.add(lFoto);
-		pPres.add(lPres);
-		pFeNa.add(txtFeNa);
-		pFeNa.add(bFeNa);
-		pFoto.add(bFoto);
-		pPres.add(bPres);
-		panelCentral.add(pFeNa);
-		panelCentral.add(new JPanel());
-		panelCentral.add(pFoto);
-		panelCentral.add(new JPanel());
-		panelCentral.add(pPres);
-
-		//panel este
+		// panel este -> Panel Padding
 		JPanel panelEste = new JPanel();
 		panelGeneral.add(panelEste, BorderLayout.EAST);
 
-		//panel oeste
+		// panel oeste -> Panel Padding
 		JPanel panelOeste = new JPanel();
 		panelGeneral.add(panelOeste, BorderLayout.WEST);
 
-		//panel sur
+		// panel sur
 		JPanel panelSur = new JPanel();
 		panelGeneral.add(panelSur, BorderLayout.SOUTH);
 
-		//--->Elementos del panel sur
+		// --->Elementos del panel sur
 		panelSur.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		JButton btnOK = new JButton("OK");
 		addManejadorBtnOK(btnOK);
@@ -177,34 +108,194 @@ public class RegisterGUI extends JDialog{
 		panelSur.add(btnCancel);
 	}
 
-	private void addManejadorBtnOK(JButton btnOK) {
-		btnOK.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				try {
-					if ( Controlador.INSTANCE.registerUser(txtUsuario.getText(),txtNombre.getText(),txtEmail.getText(), txtCont.getText(), txtFeNa.getText(), null, null)) {
-						JOptionPane.showMessageDialog(RegisterGUI.this, "Usuario registrado correctamente");
-						RegisterGUI.this.dispose();
-					}
-					else {
-						JOptionPane.showMessageDialog(RegisterGUI.this, "El usuario ya existe",
-								"Error", JOptionPane.ERROR_MESSAGE);
-						return;
-					}
-				}catch(Exception ex) {
-					System.out.println("Intentelo de nuevo");
-					System.err.println("El usuario ya existe - intentelo de nuevo");
-					ex.printStackTrace();
-				}
-			}
+	private void crearPanelTitulo(JPanel panelGeneral) {
+		// panel norte
+		JPanel panelNorte = new JPanel();
+		panelGeneral.add(panelNorte, BorderLayout.NORTH);
+
+		// --->Elementos del panel norte
+		panelNorte.setLayout(new BoxLayout(panelNorte, BoxLayout.Y_AXIS));
+
+		// ------->Dentro del box-layout tenemos que meter paneles
+		JPanel panelTitulo = new JPanel();
+		JLabel lblTitulo = new JLabel("Photo TDS");
+		lblTitulo.setFont(new Font("Trebuchet MS", Font.BOLD | Font.ITALIC, 30));
+		panelTitulo.add(lblTitulo);
+		panelNorte.add(new JPanel());
+		panelNorte.add(panelTitulo);
+
+		JPanel panelSubtitulo = new JPanel();
+		panelSubtitulo.setBorder(new EmptyBorder(10, 10, 0, 10));
+		JTextArea txtSubtitulo = new JTextArea("Si te registras podrás compartir fotos y ver las fotos de tus amigos");
+		txtSubtitulo.setEditable(false);
+		txtSubtitulo.setBackground(new Color(240, 240, 240));
+		txtSubtitulo.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		txtSubtitulo.setLineWrap(true);
+		txtSubtitulo.setWrapStyleWord(true);
+		txtSubtitulo.setRows(2);
+		txtSubtitulo.setColumns(DEFAULT_COLUMNS);
+
+		panelSubtitulo.add(txtSubtitulo);
+		panelNorte.add(new JPanel());// Panel Padding
+		panelNorte.add(panelSubtitulo);
+	}
+
+	private void crearPanelDatos(JPanel panelGeneral) {
+		// panel central
+		JPanel panelCentral = new JPanel();
+		panelGeneral.add(panelCentral, BorderLayout.CENTER);
+		panelCentral.setLayout(new BoxLayout(panelCentral, BoxLayout.Y_AXIS));
+
+		panelCentral.add(new JPanel());// Panel Padding
+
+		// --->Elementos panel central
+
+		JPanel panelEmail = new JPanel();
+		txtEmail = new JTextField("Email");
+		txtEmail.setColumns(DEFAULT_COLUMNS);
+		panelEmail.add(txtEmail);
+		panelCentral.add(panelEmail);
+
+		JPanel panelNombre = new JPanel();
+		txtNombre = new JTextField("Nombre Completo");
+		txtNombre.setColumns(DEFAULT_COLUMNS);
+		panelNombre.add(txtNombre);
+		panelCentral.add(panelNombre);
+
+		JPanel panelUsuario = new JPanel();
+		txtUsuario = new JTextField("Nombre de Usuario");
+		txtUsuario.setColumns(DEFAULT_COLUMNS);
+		panelUsuario.add(txtUsuario);
+		panelCentral.add(panelUsuario);
+
+		JPanel panelContras = new JPanel();
+		txtContras = new JTextField("Contraseña");
+		txtContras.setColumns(DEFAULT_COLUMNS);
+		panelContras.add(txtContras);
+		panelCentral.add(panelContras);
+
+		// Campo Fecha de Nacimiento
+		JPanel panelFechaNacimiento = new JPanel();
+		panelFechaNacimiento.setLayout(new FlowLayout());
+		panelFechaNacimiento.setBorder(new LineBorder(Color.black, 1));
+		JLabel lblFechaNacimiento = new JLabel("Fecha de Nacimiento ");
+		panelFechaNacimiento.add(lblFechaNacimiento);
+		crearCalendario(panelFechaNacimiento);
+		panelCentral.add(panelFechaNacimiento);
+
+		// Panel Padding
+		panelCentral.add(new JPanel());
+
+		// Campo Foto de perfil
+		JPanel panelFotoPerfil = new JPanel();
+		panelFotoPerfil.setLayout(new FlowLayout());
+		JLabel lblFotoPerfil = new JLabel("Añadir foto del usuario (opcional) ");
+		panelFotoPerfil.add(lblFotoPerfil);
+		JButton btnFotoPerfil = new JButton("+");
+		addManejadorBtnFotoPerfil(btnFotoPerfil);
+		panelFotoPerfil.setBorder(new LineBorder(Color.black, 1));
+		panelFotoPerfil.add(btnFotoPerfil);
+		panelCentral.add(panelFotoPerfil);
+
+		// Panel Padding
+		panelCentral.add(new JPanel());
+
+		// Campo Presentación del usuario
+		JPanel panelPresentacion = new JPanel();
+		panelPresentacion.setLayout(new FlowLayout());
+		JLabel lblPresentacion = new JLabel("Añadir presentación (opcional) ");
+		panelPresentacion.add(lblPresentacion);
+		JButton btnPresentacion = new JButton("...");
+		panelPresentacion.setBorder(new LineBorder(Color.black, 1));
+		addManejadorBtnPresentacion(btnPresentacion);
+		panelPresentacion.add(btnPresentacion);
+		panelCentral.add(panelPresentacion);
+
+	}
+	
+	private void addManejadorBtnPresentacion(JButton btn) {
+		btn.addActionListener(ev -> {
+			PresentationGUI w = new PresentationGUI(owner);
+			w.mostrarVentana();
+			this.presentacion = w.getPresentacion();
+			System.out.println("--"+this.presentacion.get());
 		});
 	}
 	
-	private void addManejadorBtnCancel(JButton btnCancel) {
-		btnCancel.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-			RegisterGUI.this.dispose();
+	private void addManejadorBtnFotoPerfil(JButton btn) {
+		btn.addActionListener(ev -> {
+			JFileChooser fc = new JFileChooser();
+			int retVal = fc.showOpenDialog(this);
+			if(retVal == JFileChooser.APPROVE_OPTION) {
+				this.fotoPerfil = Optional.ofNullable(fc.getSelectedFile().getAbsolutePath());
 			}
 		});
 	}
 
+	private void crearCalendario(JPanel p) {
+		this.chooser = new JDateChooser();
+		chooser.setFont(new Font("Tahoma", Font.PLAIN, 10));
+		chooser.setDateFormatString("yyyy-MM-dd");
+		p.add(chooser);
+	}
+
+	private void addManejadorBtnOK(JButton btnOK) {
+		btnOK.addActionListener(ev -> {
+			//Comprobación de errores
+			//Campo fecha vacío
+			Date date = chooser.getDate();
+			if(date == null) {
+				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir la fecha de nacimiento", "Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			DateFormat df = DateFormat.getDateInstance();
+			
+			//Campo Email vacio
+			String email = txtEmail.getText();
+			if(email.equals("") || email.equals("Email")) {
+				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir un Email", "Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			
+			//Campo Nombre vacío
+			String nombre = txtNombre.getText();
+			if(nombre.equals("") || nombre.equals("Nombre Completo")) {
+				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir su nombre completo", "Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			
+			//Campo Username vacío
+			String username = txtUsuario.getText();
+			if(username.equals("") || username.equals("Nombre de Usuario")) {
+				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir un nombre de usuario", "Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			
+			//Campo contraseña vacío
+			String password = txtContras.getText();
+			if(password.equals("") || password.equals("Contraseña")) {
+				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir una contraseña", "Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			
+			
+			//Caso de todos los campos necesarios completos --> Intenta registrar
+			if (Controlador.INSTANCE.registerUser(username, nombre, email, password, df.format(date), fotoPerfil, presentacion)) {
+				JOptionPane.showMessageDialog(RegisterGUI.this, "Usuario registrado correctamente");
+				RegisterGUI.this.dispose();
+			} else {
+				JOptionPane.showMessageDialog(RegisterGUI.this, "El usuario ya existe", "Error",
+						JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+		});
+	}
+
+	private void addManejadorBtnCancel(JButton btnCancel) {
+		btnCancel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				RegisterGUI.this.dispose();
+			}
+		});
+	}
 }

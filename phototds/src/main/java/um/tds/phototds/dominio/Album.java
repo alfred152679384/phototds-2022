@@ -9,14 +9,14 @@ public class Album extends Publicacion{
 
 	//Constructor DAO
 		public Album(String titulo, String fecha, String descripcion, String meGustas, String comentarios, String listaFotos) {
-			super(titulo, fecha, descripcion, meGustas, comentarios);
+			super(titulo, fecha, descripcion, meGustas, "", comentarios);
 			//this.listaFotos = listaFotos; //Cargar fotos a la lista
 		}
 
 		
 		//Constructor básico
 		public Album(String titulo, String fecha, String descripcion, String path) {
-			super(titulo, fecha, descripcion);
+			super(titulo, descripcion);
 			//this.listaFotos = listaFotos;
 		}
 

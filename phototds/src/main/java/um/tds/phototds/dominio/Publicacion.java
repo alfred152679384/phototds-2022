@@ -16,21 +16,23 @@ public class Publicacion {
 	private LinkedList<Comentario> comentarios; 
 	
 	// Constructor básico
-	public Publicacion(String titulo, String descripcion, String ... hashtags) {
+	public Publicacion(String titulo, String descripcion/*, String ... hashtags*/) {
 		super();
 		this.titulo = titulo;
 		this.fecha = LocalDate.now().toString();
 		this.descripcion = descripcion;
 		this.hashtags = new LinkedList<String>();
-		for(int i=0; i< hashtags.length; i++) {
-			this.hashtags.add(hashtags[i]);
-		}
+//		for(int i=0; i< hashtags.length; i++) {
+//			this.hashtags.add(hashtags[i]);
+//		}
 		this.comentarios = new LinkedList<Comentario>();
 	}
 	
 	//Constructor DAO
 	public Publicacion(String titulo, String fecha, String descripcion, String meGustas, String hashtags, String comentarios) {
-		this(titulo, fecha, descripcion);
+		this.titulo = titulo;
+		this.fecha = fecha;
+		this.descripcion = descripcion;
 		this.meGustas = Integer.parseInt(meGustas);
 		//Cargar hashtags
 		

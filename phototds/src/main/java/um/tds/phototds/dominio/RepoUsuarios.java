@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 import um.tds.phototds.dao.*;
 
@@ -30,10 +31,13 @@ public enum RepoUsuarios {
 	}
 	
 	private void cargarUsuarios() {
-		List<Usuario> listausuarios = factoria.getUsuarioDAO().getAll();
-		for (Usuario usuario : listausuarios) {
+		List<Usuario> listaUsuarios = factoria.getUsuarioDAO().getAll();
+		for (Usuario usuario : listaUsuarios) {
 			usuariosPorID.put(usuario.getId(), usuario);
 			usuariosPorLogin.put(usuario.getUsername(), usuario);
+		}
+		for(Usuario u: listaUsuarios) {
+			u.cargarListasUsuarios();
 		}
 	}
 	
@@ -41,12 +45,12 @@ public enum RepoUsuarios {
 		return new LinkedList<Usuario>(usuariosPorLogin.values());
 	}
 	
-	public Usuario findUsuario(String username) {
-		return usuariosPorLogin.get(username);
+	public Optional<Usuario> findUsuario(String username) {
+		return Optional.ofNullable(usuariosPorLogin.get(username));
 	}
 
-	public Usuario findUsuario(int id) {
-		return usuariosPorID.get(id);
+	public Optional<Usuario> findUsuario(int id) {
+		return Optional.ofNullable(usuariosPorID.get(id));
 	}
 	
 	public void addUsuario(Usuario usuario) {

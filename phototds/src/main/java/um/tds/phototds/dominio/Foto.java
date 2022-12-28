@@ -6,14 +6,14 @@ public class Foto extends Publicacion {
 
 	//Constructor DAO
 	public Foto(String titulo, String fecha, String descripcion, String meGustas, String comentarios, String path) {
-		super(titulo, fecha, descripcion, meGustas, comentarios);
+		super(titulo, fecha, descripcion, meGustas, "/*hastags*/", comentarios);
 		this.path = path;
 	}
 
 	
 	//Constructor básico
 	public Foto(String titulo, String descripcion, String path) {
-		super(titulo, descripcion, new String[0]);//TODO: Hay que cambiar este array vacio por los hashtag, pero todavía no
+		super(titulo, descripcion);//TODO: Hay que cambiar para poner los hashtag, pero todavía no
 		this.path = path;
 	}
 	

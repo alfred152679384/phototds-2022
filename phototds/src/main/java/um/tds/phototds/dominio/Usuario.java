@@ -3,6 +3,9 @@ package um.tds.phototds.dominio;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+
+import um.tds.phototds.controlador.Controlador;
 
 public class Usuario {
 	//Constantes
@@ -12,42 +15,55 @@ public class Usuario {
 	private String username;
 	private String nombre;
 	private String email;
-	private String cont;
+	private String password;
 	private String fechN;
-	private String foto;
-	private String presentación;
-	private boolean isPremium;//Añadir a Persistencia
+	private Optional<String> fotoPerfil;
+	private Optional<String> presentacion;
+	private boolean isPremium; 
 	private LinkedList<Publicacion> publicaciones;
 	private LinkedList<Usuario> seguidores;
 	private LinkedList<Usuario> seguidos;
+	private Optional<String> seguidoresString;
+	private Optional<String> seguidosString;
 
 	
 	//Constructor básico para nuevo usuario
-	public Usuario(String username, String nombre, String email, String cont, String fechN, String foto, String presentación) {
+	public Usuario(String username, String nombre, String email, String cont, String fechN, Optional<String> fotoPerfil, Optional<String> presentacion) {
 		super();
 		this.username = username;
 		this.nombre = nombre;
 		this.email = email;
-		this.cont = cont;
+		this.password = cont;
 		this.fechN = fechN;
-		this.foto = foto;
-		this.presentación = presentación;
+		this.fotoPerfil = fotoPerfil;
+		this.presentacion = presentacion;
 		this.isPremium = false;
 		this.publicaciones = new LinkedList<Publicacion>();
 		this.seguidores = new LinkedList<Usuario>();
 		this.seguidos = new LinkedList<Usuario>();
+		this.seguidoresString = Optional.empty();
+		this.seguidosString = Optional.empty();
 	}
 	
 	
-	//Constructor DAO
-	public Usuario(String username, String nombre, String email, String cont, String fechN, String foto, String presentacion,
-			String isPremium, String publicaciones, String seguidores, String seguidos) {
-		this(username, nombre, email, cont, fechN, foto, presentacion);
-		if(isPremium.equals("true"))
-			this.isPremium = true;
-		else this.isPremium = false;
-		//Crear cargador xml de las fotos (creo que va aquí) (aunque también habrá otro en repo)
+	//Constructor DAO 
+	public Usuario(String username, String nombre, String email, String password, String fechN, String fotoPerfil, String presentacion,
+			String isPremium, String seguidores, String seguidos) {
+		this.username = username;
+		this.nombre = nombre;
+		this.email = email;
+		this.password = password;
+		this.fechN = fechN;
+		this.fotoPerfil = fotoPerfil.equals("null") ? Optional.empty() : Optional.of(fotoPerfil);
+		this.presentacion = presentacion.equals("null") ? Optional.empty() : Optional.of(presentacion);
+		this.isPremium = isPremium.equals("true") ? true : false;
+//		this.publicaciones; //No se inicializa porque todavía no tienen por qué existir las fotos
+		this.seguidores = new LinkedList<Usuario>();
+		this.seguidoresString = Optional.of(seguidores);
+		this.seguidos = new LinkedList<Usuario>();
+		this.seguidosString = Optional.of(seguidos);
 	}
+	
 
 	//getters-setters
 	public int getId() {
@@ -57,114 +73,120 @@ public class Usuario {
 	public void setId(int id) {
 		this.id = id;
 	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public String getNombre() {
-		return nombre;
-	}
-
-	public void setNombre(String nombre) {
-		this.nombre = nombre;
-	}
-
+	
 	public String getUsername() {
-		return username;
-	}
-
-	public void setUsuario(String usuario) {
-		this.username = usuario;
-	}
-
-	public String getCont() {
-		return cont;
-	}
-
-	public void setCont(String cont) {
-		this.cont = cont;
-	}
-
-	public String getFechN() {
-		return fechN;
-	}
-
-	public void setFechN(String fechN) {
-		this.fechN = fechN;
+		return this.username;
 	}
 	
-	public String getFoto() {
-		return foto;
+	public String getEmail() {
+		return this.email;
 	}
 	
-	public void setFoto(String newFoto) {
-		this.foto = newFoto;
-	}
-
-	public String getPresentación() {
-		return presentación;
-	}
-
-	public void setPresentación(String presentación) {
-		this.presentación = presentación;
-	}
-
-
-	public boolean isPremium() {
-		return isPremium;
+	public String getNombre() {
+		return this.nombre;
 	}
 	
-	public String isPremiumString() {
-		if(this.isPremium)
+	public String getPassword() {
+		return this.password;
+	}
+		
+	public int getNumSeguidores() {
+		return this.seguidores.size();
+	}
+	
+	public int getNumSeguidos() {
+		return this.seguidos.size();
+	}
+	
+	public String getFechaNacimiento() {
+		return this.fechN;
+	}
+	
+	public String getFotoPerfil() {
+		if(fotoPerfil.isPresent())
+			return fotoPerfil.get();
+		else return "null";
+	}
+	
+	public String getPresentacion() {
+		if(presentacion.isPresent())
+			return presentacion.get();
+		else return "null";
+	}
+	
+	public String isPremiumString(){
+		if(isPremium)
 			return "true";
-		return "false";
-	}
-	
-	public void setPremium(boolean premium) {
-		this.isPremium = premium;
-	}
-
-
-	public List<Publicacion> getListaPubli() {
-		return Collections.unmodifiableList(this.publicaciones);
-	}
-	
-	public String getPubliString() {
-		return this.publicaciones.toString();
-	}
-
-
-	public List<Usuario> getSeguidores() {
-		return Collections.unmodifiableList(this.seguidores);
+		else return "false";
 	}
 	
 	public String getSeguidoresString() {
-		return this.seguidores.toString();
-	}
-
-	
-	public List<Usuario> getSeguidos() {
-		return Collections.unmodifiableList(this.seguidos);
+		return listToString(this.seguidores);
 	}
 	
 	public String getSeguidosString() {
-		return this.seguidos.toString();
+		return listToString(this.seguidos);
 	}
 
+	
 	//Funcionalidad
-
-//	@Override
-//	public String toString() {
-//		return "Usuario [id=" + id + ", username=" + username + ", nombre=" + nombre + ", email=" + email + ", cont="
-//				+ cont + ", fechN=" + fechN + ", foto=" + foto + ", presentación=" + presentación + ", isPremium="
-//				+ isPremium + ", publicaciones=" + publicaciones + ", seguidores=" + seguidores + ", seguidos="
-//				+ seguidos + "]";
-//	}
+	private String listToString(LinkedList<Usuario> list) {
+		String s = "[";
+		for(Usuario u : list) {
+			s += u.getUsername()+",";
+		}		
+		s = s.substring(0, s.length()-1);
+		s+="]";
+		return s;
+	}
+	
+	public void cargarPublicaciones(LinkedList<Publicacion> p) {
+		this.publicaciones = p;
+	}
+	
+	/**
+	 * Cuando se cargan los objetos Usuario no podemos crear las listas
+	 * de seguidores y seguidos porque puede que algunos usuarios todavía
+	 * no estén creados, por lo que los creamos cuando se llama a esta función
+	 */
+	public void cargarListasUsuarios() {
+		cargarSeguidores();
+		cargarSeguidos();
+	}
+	
+	private void cargarSeguidores() {
+		if(this.seguidoresString.get().equals("[]"))
+			return;
+		String n = seguidoresString.get().substring(1, seguidoresString.get().length()-1);
+		String[] s = n.split(",");
+		for(int i=0; i< s.length; i++) {
+			Optional<Usuario> u= Controlador.INSTANCE.findUsuario(s[i]);
+			if(u.isPresent()) {
+				this.seguidores.add(u.get());
+			}
+			else {
+				System.err.println("Usuario "+u.get().getUsername()+": No existe");
+			}
+		}
+	}
+	
+	private void cargarSeguidos() {
+		if(this.seguidosString.get().equals("[]"))
+			return;
+		String n = seguidosString.get().substring(1, seguidosString.get().length()-1);
+		String[] s = n.split(",");
+		for(int i=0; i< s.length; i++) {
+			Optional<Usuario> u= Controlador.INSTANCE.findUsuario(s[i]);
+			if(u.isPresent()) {
+				this.seguidores.add(u.get());
+			}
+			else {
+				System.err.println("Usuario "+u.get().getUsername()+": No existe");
+			}
+		}
+	}
+	
+	
 	
 
 

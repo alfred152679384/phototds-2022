@@ -27,6 +27,7 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EtchedBorder;
+import javax.swing.JTextArea;
 
 public class Pruebas {
 	//Constantes
@@ -43,6 +44,9 @@ public class Pruebas {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
+					String filePath = new File("").getAbsolutePath();
+					filePath.concat("path to the property file");
+					System.out.println(filePath);
 					Pruebas window = new Pruebas();
 					window.frame.setVisible(true);
 				} catch (Exception e) {
@@ -135,6 +139,10 @@ public class Pruebas {
 		
 		JLabel lblNombreUsuario = new JLabel(/*Controlador.INSTANCE.getUsuarioActual()*/"user");
 		panelPerfilUsuario.add(lblNombreUsuario);
+		
+		JTextArea textArea = new JTextArea();
+		textArea.setEditable(false);
+		panelInfo.add(textArea);
 	}
 	
 	private static void setProp(double[] size) {//SetProporcion

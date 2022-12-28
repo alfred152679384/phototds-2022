@@ -54,11 +54,11 @@ public class AddFotoGUI extends JDialog {//Añadir fotos por drag and drop o del
 							evt.acceptDrop(DnDConstants.ACTION_COPY);
 							List<File> droppedFiles = (List<File>) evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
 							for (File file : droppedFiles) {
-								//Tenemos el fichero
-								ShowImageGUI w = new ShowImageGUI(owner, file);
-								w.setVisible(true);
-								//owner.dispose();
+								mostrarFoto(file);
 							}
+							PrincipalGUI w = new PrincipalGUI();
+							w.mostrarVentana();
+							owner.dispose();
 						} catch (Exception ex) {
 							ex.printStackTrace();
 						}
@@ -76,16 +76,15 @@ public class AddFotoGUI extends JDialog {//Añadir fotos por drag and drop o del
 					int retVal = fc.showOpenDialog(this);
 					if(retVal == JFileChooser.APPROVE_OPTION) {
 						File f = fc.getSelectedFile();
-						System.out.println(f.getAbsolutePath());
+						
 					}
 				});
 				panelBtnFileChooser.add(btnFileChooser);
 
 	}
-	
-	public static void main(String[] args) {
-		AddFotoGUI w = new AddFotoGUI(new JFrame());
+
+	private void mostrarFoto(File fi) {
+		ShowImageGUI w = new ShowImageGUI(owner, fi);
 		w.setVisible(true);
 	}
-
 }

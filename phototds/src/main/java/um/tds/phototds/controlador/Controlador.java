@@ -1,10 +1,13 @@
 package um.tds.phototds.controlador;
 
+import java.awt.Frame;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import um.tds.phototds.dao.*;
 import um.tds.phototds.dominio.*;
+import um.tds.phototds.interfaz.PrincipalGUI;
 
 enum Status {
 	PRE_LOGIN, LOGED
@@ -34,13 +37,44 @@ public enum Controlador {
 	public String getUsuarioActual() {
 		return this.usuario.getUsername();
 	}
+	
+	public String getCorreoUsuario() {
+		return this.usuario.getEmail();
+	}
+	
+	public List<Foto> getFotosPrincipal() {
+		return RepoPublicaciones.INSTANCE.getFotosPrincipal();	
+	}
+	
+	public List<Foto> getFotosPerfil(){
+		//TODO return RepoPublicaciones.INSTANCE.getFotosPerfil(this.usuario.getUsername());
+		return RepoPublicaciones.INSTANCE.getFotosPrincipal();
+	}
+
+	public int getNumPublicaciones() {
+		return RepoPublicaciones.INSTANCE.getNumPublicaciones(this.usuario.getUsername());
+	}
+	
+	public int getNumSeguidores() {
+		return usuario.getNumSeguidores();  
+	}
+	
+	public int getNumSeguidos() {
+		return usuario.getNumSeguidos();
+	}
+	
+	public String getNombreUsuario() {
+		return usuario.getNombre();
+	}
 
 	// Funcionalidad
 	public boolean loginUser(String username, String p) {
-		assert (estado == Status.PRE_LOGIN);
-		Usuario aux = RepoUsuarios.INSTANCE.findUsuario(username);
-		if (aux != null && aux.getCont().equals(p)) {
-			this.usuario = aux;
+		if(estado != Status.PRE_LOGIN) {
+			return false;
+		}
+		Optional<Usuario> aux = RepoUsuarios.INSTANCE.findUsuario(username);
+		if (aux.isPresent() && aux.get().getPassword().equals(p)) {
+			this.usuario = aux.get();
 			estado = Status.LOGED;
 			return true;
 		}
@@ -48,17 +82,19 @@ public enum Controlador {
 
 	}
 
-	public boolean registerUser(String username, String nombre, String email, String cont, String fechN, String foto,
-			String presentacion) {// Hay que ampliar los datos con los campos que se piden
-		assert (estado == Status.PRE_LOGIN);
-		if (RepoUsuarios.INSTANCE.findUsuario(username) != null) {
+	public boolean registerUser(String username, String nombre, String email, String cont, 
+			String fechN, Optional<String> fotoPerfil, Optional<String> presentacion) {
+		Optional<Usuario> optUser = RepoUsuarios.INSTANCE.findUsuario(username);
+		if (estado != Status.PRE_LOGIN || optUser.isPresent()) {
 			return false;
 		}
-		Usuario u = new Usuario(username, nombre, email, cont, fechN, foto, presentacion);
+		//Creamos el usuario en el dominio
+		Usuario u = new Usuario(username, nombre, email, cont, fechN, fotoPerfil, presentacion);
+		
+		//Añadimos al usuario al servidor de Persistencia
 		UsuarioDAO daoUser = factoria.getUsuarioDAO();
 		daoUser.create(u);
 		RepoUsuarios.INSTANCE.addUsuario(u);
-		estado = Status.LOGED;
 		return true;
 	}
 
@@ -76,10 +112,12 @@ public enum Controlador {
 		PublicacionDAO daoFoto = factoria.getPublicacionDAO();
 		daoFoto.create(p);
 		RepoPublicaciones.INSTANCE.addPublicacion(p);
+		
 		return true;
 	}
 	
-	public List<Foto> getFotos() {
-		return RepoPublicaciones.INSTANCE.getFotos();	
+	public Optional<Usuario> findUsuario(String username) {
+		return RepoUsuarios.INSTANCE.findUsuario(username);
 	}
+	
 }
