@@ -2,6 +2,7 @@ package um.tds.phototds.controlador;
 
 import java.awt.Frame;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,9 +51,21 @@ public enum Controlador {
 		//TODO return RepoPublicaciones.INSTANCE.getFotosPerfil(this.usuario.getUsername());
 		return RepoPublicaciones.INSTANCE.getFotosPrincipal();
 	}
+	
+	public String getFotoPerfilUsuario() {
+		return usuario.getFotoPerfil();
+	}
+	
+	public Collection<Usuario> getUsuariosRegistrados(){
+		return RepoUsuarios.INSTANCE.getUsuariosRegistrados();
+	}
 
 	public int getNumPublicaciones() {
-		return RepoPublicaciones.INSTANCE.getNumPublicaciones(this.usuario.getUsername());
+		return this.usuario.getNumPublicaciones();
+	}
+	
+	public void cargarPublicaciones(Usuario u, List<Publicacion> l) {
+		RepoUsuarios.INSTANCE.cargarPublicaciones(u, l);
 	}
 	
 	public int getNumSeguidores() {
@@ -108,11 +121,11 @@ public enum Controlador {
 	}
 
 	public boolean addFoto(String path, String title, String desc) {
-		Publicacion p = new Foto(title, desc, path);
+		Publicacion p = new Foto(this.usuario, title, desc, path);
 		PublicacionDAO daoFoto = factoria.getPublicacionDAO();
 		daoFoto.create(p);
 		RepoPublicaciones.INSTANCE.addPublicacion(p);
-		
+		usuario.addPublicacion(p);
 		return true;
 	}
 	

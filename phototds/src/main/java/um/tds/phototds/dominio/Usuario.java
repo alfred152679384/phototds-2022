@@ -8,9 +8,11 @@ import java.util.Optional;
 import um.tds.phototds.controlador.Controlador;
 
 public class Usuario {
-	//Constantes
-	
-	//Atributos
+	// Constantes
+	private static final String DEFAULT_FOTO = "resources\\unnamed_photo.png";
+	private static final String LISTA_VACIA = "[]";
+
+	// Atributos
 	private int id;
 	private String username;
 	private String nombre;
@@ -19,16 +21,16 @@ public class Usuario {
 	private String fechN;
 	private Optional<String> fotoPerfil;
 	private Optional<String> presentacion;
-	private boolean isPremium; 
+	private boolean isPremium;
 	private LinkedList<Publicacion> publicaciones;
 	private LinkedList<Usuario> seguidores;
 	private LinkedList<Usuario> seguidos;
 	private Optional<String> seguidoresString;
 	private Optional<String> seguidosString;
 
-	
-	//Constructor básico para nuevo usuario
-	public Usuario(String username, String nombre, String email, String cont, String fechN, Optional<String> fotoPerfil, Optional<String> presentacion) {
+	// Constructor básico para nuevo usuario
+	public Usuario(String username, String nombre, String email, String cont, String fechN, Optional<String> fotoPerfil,
+			Optional<String> presentacion) {
 		super();
 		this.username = username;
 		this.nombre = nombre;
@@ -44,11 +46,10 @@ public class Usuario {
 		this.seguidoresString = Optional.empty();
 		this.seguidosString = Optional.empty();
 	}
-	
-	
-	//Constructor DAO 
-	public Usuario(String username, String nombre, String email, String password, String fechN, String fotoPerfil, String presentacion,
-			String isPremium, String seguidores, String seguidos) {
+
+	// Constructor DAO
+	public Usuario(String username, String nombre, String email, String password, String fechN, String fotoPerfil,
+			String presentacion, String isPremium, String seguidores, String seguidos) {
 		this.username = username;
 		this.nombre = nombre;
 		this.email = email;
@@ -63,9 +64,8 @@ public class Usuario {
 		this.seguidos = new LinkedList<Usuario>();
 		this.seguidosString = Optional.of(seguidos);
 	}
-	
 
-	//getters-setters
+	// getters-setters
 	public int getId() {
 		return id;
 	}
@@ -73,125 +73,137 @@ public class Usuario {
 	public void setId(int id) {
 		this.id = id;
 	}
-	
+
 	public String getUsername() {
 		return this.username;
 	}
-	
+
 	public String getEmail() {
 		return this.email;
 	}
-	
+
 	public String getNombre() {
 		return this.nombre;
 	}
-	
+
 	public String getPassword() {
 		return this.password;
 	}
-		
+
 	public int getNumSeguidores() {
 		return this.seguidores.size();
 	}
-	
+
 	public int getNumSeguidos() {
 		return this.seguidos.size();
 	}
-	
+
 	public String getFechaNacimiento() {
 		return this.fechN;
 	}
-	
+
 	public String getFotoPerfil() {
-		if(fotoPerfil.isPresent())
+		if (fotoPerfil.isPresent())
 			return fotoPerfil.get();
-		else return "null";
+		return DEFAULT_FOTO;
 	}
-	
-	public String getPresentacion() {
-		if(presentacion.isPresent())
+
+	public String getFotoPerfilDAO() {
+		if (fotoPerfil.isPresent())
+			return fotoPerfil.get();
+		return "null";
+	}
+
+	public Optional<String> getPresentacion() {
+		return presentacion;
+	}
+
+	public String getDAOPresentacion() {
+		if (presentacion.isPresent())
 			return presentacion.get();
-		else return "null";
+		return "null";
 	}
-	
-	public String isPremiumString(){
-		if(isPremium)
+
+	public String isPremiumDAO() {
+		if (isPremium)
 			return "true";
-		else return "false";
+		return "false";
 	}
-	
+
 	public String getSeguidoresString() {
 		return listToString(this.seguidores);
 	}
-	
+
 	public String getSeguidosString() {
 		return listToString(this.seguidos);
 	}
 
-	
-	//Funcionalidad
+	public int getNumPublicaciones() {
+		return this.publicaciones.size();
+	}
+
+	// Funcionalidad
+	public void addPublicacion(Publicacion p) {
+		this.publicaciones.add(p);
+	}
+
 	private String listToString(LinkedList<Usuario> list) {
 		String s = "[";
-		for(Usuario u : list) {
-			s += u.getUsername()+",";
-		}		
-		s = s.substring(0, s.length()-1);
-		s+="]";
+		for (int i = 0; i < list.size(); i++) {
+			if (i == 0)
+				s += list.get(i).getUsername();
+			else
+				s += "," + list.get(i).getUsername();
+		}
+		s += "]";
 		return s;
 	}
-	
-	public void cargarPublicaciones(LinkedList<Publicacion> p) {
-		this.publicaciones = p;
+
+	public void cargarPublicaciones(List<Publicacion> p) {
+		if (p.isEmpty())
+			this.publicaciones = new LinkedList<>();
+		else
+			this.publicaciones.addAll(p);
 	}
-	
+
 	/**
-	 * Cuando se cargan los objetos Usuario no podemos crear las listas
-	 * de seguidores y seguidos porque puede que algunos usuarios todavía
-	 * no estén creados, por lo que los creamos cuando se llama a esta función
+	 * Cuando se cargan los objetos Usuario no podemos crear las listas de
+	 * seguidores y seguidos porque puede que algunos usuarios todavía no estén
+	 * creados, por lo que los creamos cuando se llama a esta función
 	 */
 	public void cargarListasUsuarios() {
 		cargarSeguidores();
 		cargarSeguidos();
 	}
-	
+
 	private void cargarSeguidores() {
-		if(this.seguidoresString.get().equals("[]"))
+		if (this.seguidoresString.get().equals(LISTA_VACIA))
 			return;
-		String n = seguidoresString.get().substring(1, seguidoresString.get().length()-1);
+		String n = seguidoresString.get().substring(1, seguidoresString.get().length() - 1);
 		String[] s = n.split(",");
-		for(int i=0; i< s.length; i++) {
-			Optional<Usuario> u= Controlador.INSTANCE.findUsuario(s[i]);
-			if(u.isPresent()) {
+		for (int i = 0; i < s.length; i++) {
+			Optional<Usuario> u = Controlador.INSTANCE.findUsuario(s[i]);
+			if (u.isPresent()) {
 				this.seguidores.add(u.get());
-			}
-			else {
-				System.err.println("Usuario "+u.get().getUsername()+": No existe");
+			} else {
+				System.err.println("Usuario " + u.get().getUsername() + ": No existe");
 			}
 		}
 	}
-	
+
 	private void cargarSeguidos() {
-		if(this.seguidosString.get().equals("[]"))
+		if (this.seguidosString.get().equals(LISTA_VACIA))
 			return;
-		String n = seguidosString.get().substring(1, seguidosString.get().length()-1);
+		String n = seguidosString.get().substring(1, seguidosString.get().length() - 1);
 		String[] s = n.split(",");
-		for(int i=0; i< s.length; i++) {
-			Optional<Usuario> u= Controlador.INSTANCE.findUsuario(s[i]);
-			if(u.isPresent()) {
+		for (int i = 0; i < s.length; i++) {
+			Optional<Usuario> u = Controlador.INSTANCE.findUsuario(s[i]);
+			if (u.isPresent()) {
 				this.seguidores.add(u.get());
-			}
-			else {
-				System.err.println("Usuario "+u.get().getUsername()+": No existe");
+			} else {
+				System.err.println("Usuario " + u.get().getUsername() + ": No existe");
 			}
 		}
 	}
-	
-	
-	
 
-
-	
-	
-	
-	
 }

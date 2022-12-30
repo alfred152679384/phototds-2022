@@ -1,19 +1,23 @@
 package um.tds.phototds.dominio;
 
+import um.tds.phototds.controlador.Controlador;
+
 public class Foto extends Publicacion {
 	//Atributos
 	private String path;
 
-	//Constructor DAO
-	public Foto(String titulo, String fecha, String descripcion, String meGustas, String comentarios, String path) {
-		super(titulo, fecha, descripcion, meGustas, "/*hastags*/", comentarios);
+	//Constructor DAO TODO comprobar si pasa un usuario o un string el señor dao
+	public Foto(String user, String titulo, String fecha, String descripcion, 
+			String meGustas, String hashtags, String comentarios, String path) {
+		super(user,titulo, fecha, descripcion, 
+				meGustas, hashtags, comentarios);
 		this.path = path;
 	}
 
 	
 	//Constructor básico
-	public Foto(String titulo, String descripcion, String path) {
-		super(titulo, descripcion);//TODO: Hay que cambiar para poner los hashtag, pero todavía no
+	public Foto(Usuario user, String titulo, String descripcion, String path) {
+		super(user, titulo, descripcion);
 		this.path = path;
 	}
 	
@@ -22,10 +26,6 @@ public class Foto extends Publicacion {
 	public String getPath() {
 		return path;
 	}
-
-//	public void setPath(String path) {
-//		this.path = path;
-//	}
 	
 	//Funcionalidad
 	

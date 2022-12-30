@@ -2,28 +2,15 @@ package um.tds.phototds.interfaz;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Container;
-import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.File;
-import java.io.IOException;
 import java.text.DateFormat;
-import java.time.LocalDate;
 import java.util.Date;
-import java.util.Locale;
 import java.util.Optional;
 
-import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -36,17 +23,16 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
-import com.toedter.calendar.JCalendar;
 import com.toedter.calendar.JDateChooser;
 
 import um.tds.phototds.controlador.Controlador;
 
 public class RegisterGUI extends JDialog {
 	// Constantes
+	private static final long serialVersionUID = 1L;//Necesaria para quitar warnigns
 	private static final int DEFAULT_H = 600;
 	private static final int DEFAULT_W = 400;
 	private static final int DEFAULT_COLUMNS = 30;
-	private static final int CALENDAR_SIZE = 20;
 
 	// variables
 	private JFrame owner;
@@ -84,7 +70,7 @@ public class RegisterGUI extends JDialog {
 		// Creamos elementos dentro del border-layout
 		crearPanelTitulo(panelGeneral);
 		crearPanelDatos(panelGeneral);
-//		crearPanelInferior(panelGeneral);
+		crearPanelInferior(panelGeneral);
 
 		// panel este -> Panel Padding
 		JPanel panelEste = new JPanel();
@@ -93,7 +79,9 @@ public class RegisterGUI extends JDialog {
 		// panel oeste -> Panel Padding
 		JPanel panelOeste = new JPanel();
 		panelGeneral.add(panelOeste, BorderLayout.WEST);
+	}
 
+	private void crearPanelInferior(JPanel panelGeneral) {
 		// panel sur
 		JPanel panelSur = new JPanel();
 		panelGeneral.add(panelSur, BorderLayout.SOUTH);
@@ -212,21 +200,20 @@ public class RegisterGUI extends JDialog {
 		panelCentral.add(panelPresentacion);
 
 	}
-	
+
 	private void addManejadorBtnPresentacion(JButton btn) {
 		btn.addActionListener(ev -> {
 			PresentationGUI w = new PresentationGUI(owner);
 			w.mostrarVentana();
 			this.presentacion = w.getPresentacion();
-			System.out.println("--"+this.presentacion.get());
 		});
 	}
-	
+
 	private void addManejadorBtnFotoPerfil(JButton btn) {
 		btn.addActionListener(ev -> {
 			JFileChooser fc = new JFileChooser();
 			int retVal = fc.showOpenDialog(this);
-			if(retVal == JFileChooser.APPROVE_OPTION) {
+			if (retVal == JFileChooser.APPROVE_OPTION) {
 				this.fotoPerfil = Optional.ofNullable(fc.getSelectedFile().getAbsolutePath());
 			}
 		});
@@ -241,46 +228,51 @@ public class RegisterGUI extends JDialog {
 
 	private void addManejadorBtnOK(JButton btnOK) {
 		btnOK.addActionListener(ev -> {
-			//Comprobación de errores
-			//Campo fecha vacío
+			// Comprobación de errores
+			// Campo fecha vacío
 			Date date = chooser.getDate();
-			if(date == null) {
-				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir la fecha de nacimiento", "Error", JOptionPane.ERROR_MESSAGE);
+			if (date == null) {
+				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir la fecha de nacimiento", "Error",
+						JOptionPane.ERROR_MESSAGE);
 				return;
 			}
 			DateFormat df = DateFormat.getDateInstance();
-			
-			//Campo Email vacio
+
+			// Campo Email vacio
 			String email = txtEmail.getText();
-			if(email.equals("") || email.equals("Email")) {
-				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir un Email", "Error", JOptionPane.ERROR_MESSAGE);
+			if (email.equals("") || email.equals("Email")) {
+				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir un Email", "Error",
+						JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			
-			//Campo Nombre vacío
+
+			// Campo Nombre vacío
 			String nombre = txtNombre.getText();
-			if(nombre.equals("") || nombre.equals("Nombre Completo")) {
-				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir su nombre completo", "Error", JOptionPane.ERROR_MESSAGE);
+			if (nombre.equals("") || nombre.equals("Nombre Completo")) {
+				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir su nombre completo", "Error",
+						JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			
-			//Campo Username vacío
+
+			// Campo Username vacío
 			String username = txtUsuario.getText();
-			if(username.equals("") || username.equals("Nombre de Usuario")) {
-				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir un nombre de usuario", "Error", JOptionPane.ERROR_MESSAGE);
+			if (username.equals("") || username.equals("Nombre de Usuario")) {
+				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir un nombre de usuario", "Error",
+						JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			
-			//Campo contraseña vacío
+
+			// Campo contraseña vacío
 			String password = txtContras.getText();
-			if(password.equals("") || password.equals("Contraseña")) {
-				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir una contraseña", "Error", JOptionPane.ERROR_MESSAGE);
+			if (password.equals("") || password.equals("Contraseña")) {
+				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir una contraseña", "Error",
+						JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			
-			
-			//Caso de todos los campos necesarios completos --> Intenta registrar
-			if (Controlador.INSTANCE.registerUser(username, nombre, email, password, df.format(date), fotoPerfil, presentacion)) {
+
+			// Caso de todos los campos necesarios completos --> Intenta registrar
+			if (Controlador.INSTANCE.registerUser(username, nombre, email, password, df.format(date), fotoPerfil,
+					presentacion)) {
 				JOptionPane.showMessageDialog(RegisterGUI.this, "Usuario registrado correctamente");
 				RegisterGUI.this.dispose();
 			} else {

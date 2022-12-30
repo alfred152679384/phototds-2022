@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import um.tds.phototds.controlador.Controlador;
 import um.tds.phototds.dao.DAOException;
 import um.tds.phototds.dao.FactoriaDAO;
 
@@ -34,13 +35,7 @@ public enum RepoPublicaciones {
 	}
 	
 	//Getters & Setters
-	public int getNumPublicaciones(String username) {
-		return publicaciones.size();
-//		return publicaciones.values().stream() //TODO Hay que hacerlo para un usuario específico
-//				.filter(p -> p.ge)
-	}
-	
-	public List<Foto> getFotosPrincipal() {
+	public List<Foto> getFotosPrincipal() {//TODO implementar con stream
 		ArrayList<Foto> fotos = new ArrayList<Foto>();
 		for(int k : publicaciones.keySet()) {
 			Publicacion p = publicaciones.get(k);
@@ -67,6 +62,14 @@ public enum RepoPublicaciones {
 //			else {
 //				albumes.put(p.getId(), (Album)p);
 //			}
+		}
+		LinkedList<Usuario> users = new LinkedList<>(Controlador.INSTANCE.getUsuariosRegistrados());
+		//Cargamos las publicaciones en los usuarios
+		for(Usuario u : users) {
+			List<Publicacion> publish = this.publicaciones.values().stream()
+					.filter(p -> p.getUsuario().getUsername().equals(u))
+					.collect(Collectors.toList());
+			Controlador.INSTANCE.cargarPublicaciones(u, publish);
 		}
 	}
 		

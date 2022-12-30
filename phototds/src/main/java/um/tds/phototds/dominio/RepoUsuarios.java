@@ -1,11 +1,14 @@
 package um.tds.phototds.dominio;
 
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import um.tds.phototds.dao.*;
 
@@ -39,6 +42,14 @@ public enum RepoUsuarios {
 		for(Usuario u: listaUsuarios) {
 			u.cargarListasUsuarios();
 		}
+	}
+	
+	public Collection<Usuario> getUsuariosRegistrados(){
+		return Collections.unmodifiableCollection(this.usuariosPorID.values());
+	}
+	
+	public void cargarPublicaciones(Usuario u, List<Publicacion> l) {
+		this.usuariosPorID.get(u.getId()).cargarPublicaciones(l);
 	}
 	
 	public List<Usuario> findUsuarios() throws DAOException {

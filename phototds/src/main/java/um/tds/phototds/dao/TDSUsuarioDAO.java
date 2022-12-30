@@ -73,9 +73,9 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 				new Propiedad(EMAIL, usuario.getEmail()),
 				new Propiedad(PASSWORD, usuario.getPassword()),	
 				new Propiedad(FECHA_NACIMIENTO, usuario.getFechaNacimiento()),
-				new Propiedad(FOTO_PERFIL, usuario.getFotoPerfil()), 
-				new Propiedad(PRESENTACION, usuario.getPresentacion()),
-				new Propiedad(PREMIUM, usuario.isPremiumString()),
+				new Propiedad(FOTO_PERFIL, usuario.getFotoPerfilDAO()), 
+				new Propiedad(PRESENTACION, usuario.getDAOPresentacion()),
+				new Propiedad(PREMIUM, usuario.isPremiumDAO()),
 				new Propiedad(SEGUIDORES, usuario.getSeguidoresString()),
 				new Propiedad(SEGUIDOS, usuario.getSeguidosString())
 				)));
@@ -104,9 +104,9 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 			if (prop.getNombre().equals(PASSWORD)) {
 				prop.setValor(usuario.getPassword());
 			} else if (prop.getNombre().equals(FOTO_PERFIL)) {
-				prop.setValor(usuario.getFotoPerfil());
+				prop.setValor(usuario.getFotoPerfilDAO());
 			} else if (prop.getNombre().equals(PRESENTACION)) {
-				prop.setValor(usuario.getPresentacion());
+				prop.setValor(usuario.getDAOPresentacion());
 			} 
 			servPersistencia.modificarPropiedad(prop);
 		}

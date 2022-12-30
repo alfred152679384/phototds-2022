@@ -1,34 +1,63 @@
 package um.tds.phototds.dominio;
 
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+
+import um.tds.phototds.controlador.Controlador;
+
 public class Comentario {
-	//Atributos
+	// Constantes
+	private static final String LISTA_VACIA = "[]";
+
+	// Atributos
 	private Usuario autor;
 	private String texto;
 
-	//Constructor
+	// Constructor
 	public Comentario(Usuario autor, String texto) {
 		super();
 		this.autor = autor;
 		this.texto = texto;
 	}
 
-	//getters-setters
+	// getters-setters
 	public Usuario getAutor() {
 		return autor;
-	}
-
-	public void setAutor(Usuario autor) {
-		this.autor = autor;
 	}
 
 	public String getTexto() {
 		return texto;
 	}
 
-	public void setTexto(String texto) {
-		this.texto = texto;
+	// Funcionalidad
+	public static List<Comentario> comentariosToList(String s) {
+		if (s.equals(LISTA_VACIA))
+			return Collections.emptyList();
+		List<Comentario> list = new LinkedList<>();
+		String aux = s.substring(1, s.length() - 1);
+		String[] l = aux.split(",");
+		int index;
+		String autor, texto;
+		for (int i = 0; i < l.length; i++) {
+			index = l[i].indexOf(";");
+			autor = l[i].substring(0, index);
+			texto = l[i].substring(index);
+			list.add(new Comentario(Controlador.INSTANCE.findUsuario(autor).get(),texto));
+		}
+		return list;
 	}
-	
-	//Funcionalidad
-	
+
+	public static String comentariosToString(List<Comentario> list) {
+		String s = "[";
+		for (int i = 0; i < list.size(); i++) {
+			if (i == 0)
+				s += list.get(i).getAutor() + ";" + list.get(i).getTexto();
+			else
+				s += "," + list.get(i).getAutor() + ";" + list.get(i).getTexto();
+		}
+		s += "]";
+		return s;
+	}
+
 }
