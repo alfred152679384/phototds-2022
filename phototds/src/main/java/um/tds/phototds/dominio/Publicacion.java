@@ -1,23 +1,29 @@
 package um.tds.phototds.dominio;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 import um.tds.phototds.controlador.Controlador;
 
-public class Publicacion {
+public class Publicacion implements Comparable<Publicacion> {
 	// Constantes
 	private static final char SPACE = ' ';
 	private static final char AlMOHADILLA = '#';
 	private static final String LISTA_VACIA = "[]";
+	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
+	public static final DateTimeFormatter HUMAN_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 
 	// Atributos
 	private int id;
 	private String titulo;
 	private Usuario user;
-	private String fecha;
+	private LocalDateTime fecha;
 	private String descripcion;
 	private int meGustas;
 	private LinkedList<String> hashtags;// TODO
@@ -28,7 +34,7 @@ public class Publicacion {
 		this.user = user;
 		this.titulo = titulo;
 		this.descripcion = descripcion;
-		this.fecha = LocalDate.now().toString();
+		this.fecha = LocalDateTime.now();
 		this.hashtags = new LinkedList<String>(detectarHashtags(descripcion));
 		this.comentarios = new LinkedList<Comentario>();
 	}
@@ -38,7 +44,7 @@ public class Publicacion {
 			String meGustas, String hashtags, String comentarios) {
 		this.user = Controlador.INSTANCE.findUsuario(user).get();
 		this.titulo = titulo;
-		this.fecha = fecha;
+		this.fecha = LocalDateTime.parse(fecha, FORMATTER);
 		this.descripcion = descripcion;
 		this.meGustas = Integer.parseInt(meGustas);
 		this.hashtags = new LinkedList<>(hashtagToList(hashtags));
@@ -62,20 +68,16 @@ public class Publicacion {
 		this.titulo = titulo;
 	}
 
-	public String getFecha() {
-		return fecha;
+	public String getFechaDAO() {
+		return fecha.format(FORMATTER);
 	}
-
-	public void setFecha(String fecha) {
-		this.fecha = fecha;
+		
+	public LocalDateTime getFecha() {
+		return fecha;
 	}
 
 	public String getDescripcion() {
 		return descripcion;
-	}
-
-	public void setDescripcion(String descripcion) {
-		this.descripcion = descripcion;
 	}
 
 	public int getMeGustas() {
@@ -84,10 +86,6 @@ public class Publicacion {
 
 	public String getMegustas() {
 		return Integer.toString(this.meGustas);
-	}
-
-	public void setMeGustas(int meGustas) {
-		this.meGustas = meGustas;
 	}
 	
 	public String getHashtagsDAO() {
@@ -147,6 +145,15 @@ public class Publicacion {
 			list.add(l[i]);
 		}
 		return list;
+	}
+	
+	public boolean equals(Object obj) {
+		return ((Publicacion) obj).getId() == getId();
+	}
+	
+	public int compareTo (Publicacion p) {
+//		return getFecha().compareTo(p.getFecha());
+		return p.getFecha().compareTo(getFecha());
 	}
 
 }

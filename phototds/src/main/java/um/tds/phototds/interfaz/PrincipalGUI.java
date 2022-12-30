@@ -12,6 +12,7 @@ import javax.swing.border.LineBorder;
 
 import um.tds.phototds.controlador.Controlador;
 import um.tds.phototds.dominio.Foto;
+import um.tds.phototds.dominio.Publicacion;
 
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
@@ -32,6 +33,7 @@ import javax.swing.JList;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.awt.GridLayout;
@@ -43,25 +45,27 @@ public class PrincipalGUI extends JFrame {
 	private static final int LUPA_SIZE = 10;
 	private static final int OPTIONS_SIZE = 15;
 	private static final int FOTO_PERFIL_SIZE = 25;
-	private static final int PERFIL_MODE_FOTO_PERFIL_SIZE = 25;
-	private static final int LIKE_SIZE = 20;
+	private static final int PERFIL_MODE_FOTO_PERFIL_SIZE = 100;
+	private static final int LIKE_SIZE = 25;
 	private static final int DEFAULT_X = 200;
 	private static final int DEFAULT_Y = 150;
 	private static final int DEFAULT_SCROLL = 16;
 	private static final int DEFAULT_FOTOS = 4;
 	private static final int FRAME_SIZE = 600;
 	private static final int COMMENT_SIZE = 20;
-	private static final int ENTRADA_FOTO_PERFIL_SIZE = 15;
+	private static final int ENTRADA_FOTO_PERFIL_SIZE = 50;
 	private static final int CELL_SIZE = FRAME_SIZE / 3 - 12;
 	private static final String LUPA_PATH = "resources\\lupa.png";
 	private static final String OPTIONS_PATH = "resources\\options.png";
-	private static final String LIKE_PATH = "resources\\like.png";
+	private static final String LIKE_PATH = "resources\\like.jpg";
 	private static final String COMMENT_PATH = "resources\\comment.png";
 
 	// Atributos
 	private JFrame framePrincipal;
 	private JTextField txtBuscador;
 	private boolean mostrarPerfil;
+	private JPanel panelGeneral;
+	private JPanel panelCentral;
 
 	/**
 	 * Create the frame. Constructor por defecto muestra la pantalla principal
@@ -88,15 +92,15 @@ public class PrincipalGUI extends JFrame {
 		framePrincipal.setBounds(100, 100, FRAME_SIZE, FRAME_SIZE);
 		framePrincipal.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		JPanel panelGeneral = new JPanel();
+		panelGeneral = new JPanel();
 		framePrincipal.getContentPane().add(panelGeneral);
 		panelGeneral.setLayout(new BorderLayout(0, 0));
 
-		crearPanelNorte(panelGeneral);
-		crearPanelCentral(panelGeneral);
+		crearPanelNorte();
+		crearPanelCentral();
 	}
 
-	private void crearPanelNorte(JPanel panelGeneral) {
+	private void crearPanelNorte() {
 		JPanel panelNorte = new JPanel();
 		panelGeneral.add(panelNorte, BorderLayout.NORTH);
 		panelNorte.setLayout(new BoxLayout(panelNorte, BoxLayout.X_AXIS));
@@ -105,9 +109,10 @@ public class PrincipalGUI extends JFrame {
 		JPanel panelTitulo = new JPanel();
 		panelNorte.add(panelTitulo);
 
-		JLabel lblTitulo = new JLabel("Photo TDS");
-		lblTitulo.setFont(new Font("Baskerville Old Face", Font.PLAIN, 20));
-		panelTitulo.add(lblTitulo);
+		JButton btnTitulo = new JButton("Photo TDS");
+		btnTitulo.setFont(new Font("Baskerville Old Face", Font.PLAIN, 20));
+		addManejadorBtnPrincipal(btnTitulo);
+		panelTitulo.add(btnTitulo);
 
 		// Panel Padding
 		JPanel panelPadding0 = new JPanel();
@@ -123,6 +128,13 @@ public class PrincipalGUI extends JFrame {
 		addManejadorBtnAddFoto(btnAddFoto);
 		panelBtnAdd.add(btnAddFoto);
 
+		// Botón para añadir Albumes
+		if(mostrarPerfil) {
+			JButton btnAddAlbum = new JButton("A+");
+//			addManejadorBtnAddAlbum(btnAddAlbum) //TODO
+			panelBtnAdd.add(btnAddAlbum);
+		}
+		
 		// Barra y botón de búsqueda
 		JPanel panelBuscador = new JPanel();
 		FlowLayout flowLayout_2 = (FlowLayout) panelBuscador.getLayout();
@@ -156,6 +168,7 @@ public class PrincipalGUI extends JFrame {
 		} catch (IOException e) {
 			System.err.println("Excepción: Imagen Perfil usuario");
 		}
+		addManejadorBtnFotoPerfil(btnFotoPerfil);
 		panelAjustes.add(btnFotoPerfil);
 
 		// Botón de opciones
@@ -199,7 +212,7 @@ public class PrincipalGUI extends JFrame {
 		double[] size = new double[2];
 		size[0] = foto.getWidth(null);
 		size[1] = foto.getHeight(null);
-		setProp(size, DEFAULT_X, DEFAULT_Y);
+		setProp(size, width, height);
 
 		//Creamos el JLabel
 		JLabel picLabel = new JLabel();
@@ -209,18 +222,18 @@ public class PrincipalGUI extends JFrame {
 		return picLabel;
 	}
 
-	private void crearPanelCentral(JPanel panelGeneral) {
-		JPanel panelCentral = new JPanel();
+	private void crearPanelCentral() {
+		panelCentral = new JPanel();
 		panelCentral.setLayout(new BoxLayout(panelCentral, BoxLayout.Y_AXIS));
 		panelGeneral.add(panelCentral, BorderLayout.CENTER);
-
+		
 		if (mostrarPerfil)
-			cargarPerfilUsuario(panelCentral);
+			cargarPerfilUsuario();
 		else
-			cargarPantallaPrincipal(panelCentral);
+			cargarPantallaPrincipal();
 	}
 
-	private void cargarPantallaPrincipal(JPanel panelCentral) {
+	private void cargarPantallaPrincipal() {
 		// Cargo las fotos en el panelListaFotos
 		JPanel panelListaFotos = cargarFotos();
 
@@ -233,7 +246,7 @@ public class PrincipalGUI extends JFrame {
 
 	}
 
-	private void cargarPerfilUsuario(JPanel panelCentral) {
+	private void cargarPerfilUsuario() {
 		// Informaciñon del Usuario
 		JPanel panelInfoUser = new JPanel();
 		panelCentral.add(panelInfoUser);
@@ -463,10 +476,21 @@ public class PrincipalGUI extends JFrame {
 				System.err.println("Excepcion: foto perfil usuario"+f.getUsuario().getUsername());
 			}
 			panelPerfilUsuario.add(lblFotoUsuario);
+			
+			//Panel padding
+			panelPerfilUsuario.add(new JPanel());
 
-			//Nombre completo del usuario
+			//Username
 			JLabel lblNombreUsuario = new JLabel(Controlador.INSTANCE.getUsuarioActual());
+			lblNombreUsuario.setBorder(new CompoundBorder(new LineBorder(Color.BLACK), new EmptyBorder(5, 5, 5, 5)));
 			panelPerfilUsuario.add(lblNombreUsuario);
+			
+			//Panel padding
+			panelPerfilUsuario.add(new JPanel());
+			
+			//Fecha de publicacion
+			JLabel lblFecha = new JLabel("Fecha publicacin: "+f.getFecha().format(Publicacion.HUMAN_FORMATTER));
+			panelPerfilUsuario.add(lblFecha);
 
 			//Titulo y pie de foto
 			JTextArea txtTitulo = new JTextArea(" " + f.getTitulo() + "\n\n " + f.getDescripcion());
@@ -494,8 +518,34 @@ public class PrincipalGUI extends JFrame {
 			framePrincipal.setVisible(false);
 		});
 	}
+	
+	private void addManejadorBtnFotoPerfil(JButton btn) {
+		btn.addActionListener(ev -> {
+			if(!mostrarPerfil) {
+				this.mostrarPerfil = true;
+				panelGeneral.removeAll();
+				crearPanelNorte();
+				crearPanelCentral();
+				framePrincipal.revalidate();
+				framePrincipal.repaint();		
+			}
+		});
+	}
+	
+	private void addManejadorBtnPrincipal(JButton btn) {
+		btn.addActionListener(ev -> {
+			if(mostrarPerfil) {
+				this.mostrarPerfil = false;
+				this.panelGeneral.removeAll();
+				crearPanelNorte();
+				crearPanelCentral();
+				framePrincipal.revalidate();
+				framePrincipal.repaint();
+			}
+		});
+	}
 
-	private static void setProp(double[] size, double x, double y) {// SetProporcion
+	private void setProp(double[] size, double x, double y) {// SetProporcion
 		double[] newSize = new double[2];
 		newSize[0] = size[0];
 		newSize[1] = size[1];

@@ -3,6 +3,7 @@ package um.tds.phototds.controlador;
 import java.awt.Frame;
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,8 +26,6 @@ public enum Controlador {
 	// Contructor privado (singleton)
 	private Controlador() {
 		estado = Status.PRE_LOGIN;
-		this.usuario = null;
-
 		try {
 			factoria = FactoriaDAO.getInstancia();
 		} catch (DAOException e) {
@@ -44,12 +43,14 @@ public enum Controlador {
 	}
 	
 	public List<Foto> getFotosPrincipal() {
-		return RepoPublicaciones.INSTANCE.getFotosPrincipal();	
+		return usuario.getFotosPrincipal();	
 	}
 	
-	public List<Foto> getFotosPerfil(){
-		//TODO return RepoPublicaciones.INSTANCE.getFotosPerfil(this.usuario.getUsername());
-		return RepoPublicaciones.INSTANCE.getFotosPrincipal();
+	public List<Foto> getFotosPerfil(String username){
+		Optional<Usuario> u = RepoUsuarios.INSTANCE.findUsuario(username);
+		if(u.isEmpty())
+			return Collections.emptyList();
+		return u.get().getFotosPerfil();
 	}
 	
 	public String getFotoPerfilUsuario() {
@@ -62,10 +63,6 @@ public enum Controlador {
 
 	public int getNumPublicaciones() {
 		return this.usuario.getNumPublicaciones();
-	}
-	
-	public void cargarPublicaciones(Usuario u, List<Publicacion> l) {
-		RepoUsuarios.INSTANCE.cargarPublicaciones(u, l);
 	}
 	
 	public int getNumSeguidores() {
@@ -89,8 +86,18 @@ public enum Controlador {
 		if (aux.isPresent() && aux.get().getPassword().equals(p)) {
 			this.usuario = aux.get();
 			estado = Status.LOGED;
+			RepoPublicaciones.INSTANCE.cargarPublicacionesUsuarios();
 			return true;
 		}
+		//Probamos con el email
+		aux = RepoUsuarios.INSTANCE.findUsuarioEmail(username);
+		if (aux.isPresent() && aux.get().getPassword().equals(p)) {
+			this.usuario = aux.get();
+			estado = Status.LOGED;
+			RepoPublicaciones.INSTANCE.cargarPublicacionesUsuarios();
+			return true;
+		}
+		
 		return false;
 
 	}
@@ -132,5 +139,4 @@ public enum Controlador {
 	public Optional<Usuario> findUsuario(String username) {
 		return RepoUsuarios.INSTANCE.findUsuario(username);
 	}
-	
 }

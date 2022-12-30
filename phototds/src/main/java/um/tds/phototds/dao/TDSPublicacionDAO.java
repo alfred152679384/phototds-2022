@@ -85,7 +85,7 @@ public final class TDSPublicacionDAO implements PublicacionDAO {
 				Arrays.asList(
 						new Propiedad(USUARIO, f.getUsuarioDAO()),
 						new Propiedad(TITULO, f.getTitulo()), 
-						new Propiedad(FECHA, f.getFecha()),
+						new Propiedad(FECHA, f.getFechaDAO()),
 						new Propiedad(DESCRIPCION, f.getDescripcion()), 
 						new Propiedad(ME_GUSTAS, f.getMegustas()),
 						new Propiedad(HASHTAGS, f.getHashtagsDAO()),
@@ -101,7 +101,7 @@ public final class TDSPublicacionDAO implements PublicacionDAO {
 		eAlbum.setPropiedades(new ArrayList<Propiedad>(Arrays.asList(
 				new Propiedad(USUARIO, a.getUsuarioDAO()),
 				new Propiedad(TITULO, a.getTitulo()),
-				new Propiedad(FECHA, a.getFecha()),
+				new Propiedad(FECHA, a.getFechaDAO()),
 				new Propiedad(DESCRIPCION, a.getDescripcion()),
 				new Propiedad(ME_GUSTAS, a.getMegustas()),
 				new Propiedad(HASHTAGS, a.getHashtagsDAO()),

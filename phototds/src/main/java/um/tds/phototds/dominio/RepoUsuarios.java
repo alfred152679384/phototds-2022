@@ -18,11 +18,13 @@ public enum RepoUsuarios {
 	private FactoriaDAO factoria;
 	private HashMap<Integer, Usuario> usuariosPorID; 
 	private HashMap<String, Usuario> usuariosPorLogin;
+	private HashMap<String, Usuario> usuariosPorEmail;
 	
 	//Contstructor privado (singleton)
 	private RepoUsuarios(){
 		usuariosPorID = new HashMap<Integer, Usuario>();
 		usuariosPorLogin = new HashMap<String, Usuario>();
+		usuariosPorEmail = new HashMap<String, Usuario>();
 		
 		try {
 			factoria = FactoriaDAO.getInstancia();
@@ -38,6 +40,7 @@ public enum RepoUsuarios {
 		for (Usuario usuario : listaUsuarios) {
 			usuariosPorID.put(usuario.getId(), usuario);
 			usuariosPorLogin.put(usuario.getUsername(), usuario);
+			usuariosPorEmail.put(usuario.getEmail(), usuario);
 		}
 		for(Usuario u: listaUsuarios) {
 			u.cargarListasUsuarios();
@@ -48,18 +51,14 @@ public enum RepoUsuarios {
 		return Collections.unmodifiableCollection(this.usuariosPorID.values());
 	}
 	
-	public void cargarPublicaciones(Usuario u, List<Publicacion> l) {
-		this.usuariosPorID.get(u.getId()).cargarPublicaciones(l);
-	}
-	
-	public List<Usuario> findUsuarios() throws DAOException {
-		return new LinkedList<Usuario>(usuariosPorLogin.values());
-	}
-	
 	public Optional<Usuario> findUsuario(String username) {
 		return Optional.ofNullable(usuariosPorLogin.get(username));
 	}
-
+	
+	public Optional<Usuario> findUsuarioEmail(String email) {
+		return Optional.ofNullable(usuariosPorEmail.get(email));
+	}
+	
 	public Optional<Usuario> findUsuario(int id) {
 		return Optional.ofNullable(usuariosPorID.get(id));
 	}

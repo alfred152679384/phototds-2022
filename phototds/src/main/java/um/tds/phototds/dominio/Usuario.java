@@ -1,9 +1,13 @@
 package um.tds.phototds.dominio;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import um.tds.phototds.controlador.Controlador;
 
@@ -58,7 +62,7 @@ public class Usuario {
 		this.fotoPerfil = fotoPerfil.equals("null") ? Optional.empty() : Optional.of(fotoPerfil);
 		this.presentacion = presentacion.equals("null") ? Optional.empty() : Optional.of(presentacion);
 		this.isPremium = isPremium.equals("true") ? true : false;
-//		this.publicaciones; //No se inicializa porque todavía no tienen por qué existir las fotos
+		this.publicaciones = new LinkedList<>(); //No se inicializa porque todavía no tienen por qué existir las fotos
 		this.seguidores = new LinkedList<Usuario>();
 		this.seguidoresString = Optional.of(seguidores);
 		this.seguidos = new LinkedList<Usuario>();
@@ -139,12 +143,35 @@ public class Usuario {
 	}
 
 	public int getNumPublicaciones() {
+//		return publicaciones == null ? 0 : publicaciones.size();
 		return this.publicaciones.size();
 	}
 
 	// Funcionalidad
 	public void addPublicacion(Publicacion p) {
 		this.publicaciones.add(p);
+	}
+	
+	public List<Foto> getFotosPrincipal() {
+		List<Foto> fotos = publicaciones.stream()
+			.filter(p -> p instanceof Foto)
+			.map(p -> (Foto) p)
+			.collect(Collectors.toList());
+		
+		fotos.addAll(seguidos.stream()
+			.flatMap(u -> u.getFotosPerfil().stream())
+			.collect(Collectors.toList()));
+		
+		//TODO
+		fotos.sort(null);
+		return fotos;
+	}
+	
+	public List<Foto> getFotosPerfil(){
+		return publicaciones.stream()
+				.filter(p -> p instanceof Foto)
+				.map(p -> (Foto) p)
+				.collect(Collectors.toList());
 	}
 
 	private String listToString(LinkedList<Usuario> list) {
