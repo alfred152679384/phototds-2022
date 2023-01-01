@@ -205,7 +205,7 @@ public class RegisterGUI extends JDialog {
 		btn.addActionListener(ev -> {
 			PresentationGUI w = new PresentationGUI(owner);
 			w.mostrarVentana();
-			this.presentacion = w.getPresentacion();
+			this.presentacion = w.getTexto();
 		});
 	}
 

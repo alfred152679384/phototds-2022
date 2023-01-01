@@ -1,4 +1,4 @@
-package um.tds.phototds.pruebas;
+package um.tds.phototds.interfaz;
 
 import java.awt.Color;
 import java.awt.Component;

@@ -23,12 +23,14 @@ public class AddFotoGUI extends JDialog {//Añadir fotos por drag and drop o del
 	//Atributos
 	private final JEditorPane panelGeneral = new JEditorPane();
 	private JFrame owner;
+	private boolean type;
 
 	/**
 	 * Create the dialog.
 	 */
-	public AddFotoGUI(JFrame owner) { 
+	public AddFotoGUI(JFrame owner, boolean type) { 
 		super(owner, "Añadir Foto", true);
+		this.type = type;
 		this.owner = owner;
 		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setResizable(false);
@@ -61,7 +63,11 @@ public class AddFotoGUI extends JDialog {//Añadir fotos por drag and drop o del
 			int retVal = fc.showOpenDialog(this);
 			if(retVal == JFileChooser.APPROVE_OPTION) {
 				File f = fc.getSelectedFile();
+				System.out.println(f);
 				mostrarFoto(f);
+				PrincipalGUI w = new PrincipalGUI(type);
+				w.mostrarVentana();
+				owner.dispose();
 			}
 		});
 		panelBtnFileChooser.add(btnFileChooser);
@@ -79,7 +85,7 @@ public class AddFotoGUI extends JDialog {//Añadir fotos por drag and drop o del
 					for (File file : droppedFiles) {
 						mostrarFoto(file);
 					}
-					PrincipalGUI w = new PrincipalGUI();
+					PrincipalGUI w = new PrincipalGUI(type);
 					w.mostrarVentana();
 					owner.dispose();
 				} catch (Exception ex) {

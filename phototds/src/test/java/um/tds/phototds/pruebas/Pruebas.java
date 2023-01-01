@@ -17,6 +17,8 @@ import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JList;
+
 import java.awt.FlowLayout;
 import javax.swing.JButton;
 import javax.swing.border.LineBorder;
@@ -68,7 +70,7 @@ public class Pruebas {
 	 */
 	private void initialize() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 450, 300);
+		frame.setBounds(400, 250, 450, 300);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		JPanel panelCentral = new JPanel();
@@ -78,28 +80,33 @@ public class Pruebas {
 		panelEntradaFoto.setBorder(new CompoundBorder(new EmptyBorder(0, 0, 5, 0), new BevelBorder(BevelBorder.LOWERED, null, null, null, null)));
 		panelEntradaFoto.setPreferredSize(new Dimension(frame.getWidth()-10, DEFAULT_Y+20));
 		panelCentral.add(panelEntradaFoto);
-		panelEntradaFoto.setLayout(new BoxLayout(panelEntradaFoto, BoxLayout.X_AXIS));
+		panelEntradaFoto.setLayout(new BorderLayout(0, 0));
 		
 		JPanel panelFoto = new JPanel();
-		panelEntradaFoto.add(panelFoto);
+		panelEntradaFoto.add(panelFoto, BorderLayout.WEST);
 		
-		BufferedImage foto;
-		try {
-			File f = new File("C:\\Users\\Usuario\\Downloads\\Telegram Desktop\\castillo.jpg");
-			foto = ImageIO.read(f);
-			JLabel picLabel = new JLabel();
-			double[] size = new double[2];
-			size[0] = foto.getWidth(null);
-			size[1] = foto.getHeight(null);
-			setProp(size);
-
-			Image resizedImage;
-			resizedImage = foto.getScaledInstance((int)size[0], (int)size[1], Image.SCALE_SMOOTH);
-			picLabel.setIcon(new ImageIcon(resizedImage));
-			panelFoto.add(picLabel);
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
+		String[] values = {"foto1", "foto2", "foto3", "foto4", "foto5", "foto6", "foto7", "foto8", "foto9", "foto10"};
+		JList<String> list = new JList(values);
+		list.setLayoutOrientation(JList.VERTICAL);
+		panelFoto.add(list);
+		
+//		BufferedImage foto;
+//		try {
+//			File f = new File("resources\\photos\\photo18.jpg");
+//			foto = ImageIO.read(f);
+//			JLabel picLabel = new JLabel();
+//			double[] size = new double[2];
+//			size[0] = foto.getWidth(null);
+//			size[1] = foto.getHeight(null);
+//			setProp(size);
+//
+//			Image resizedImage;
+//			resizedImage = foto.getScaledInstance((int)size[0], (int)size[1], Image.SCALE_SMOOTH);
+//			picLabel.setIcon(new ImageIcon(resizedImage));
+//			panelFoto.add(picLabel);
+//		} catch (IOException e1) {
+//			e1.printStackTrace();
+//		}
 		
 		JPanel panelInfo = new JPanel();
 		panelInfo.setBorder(new EtchedBorder(EtchedBorder.RAISED, null, null));
@@ -126,7 +133,7 @@ public class Pruebas {
 		JPanel panelContadorMG = new JPanel();
 		panelBotones.add(panelContadorMG);
 		
-		JLabel lblContadorMG = new JLabel(/*get Megusta ????*/"X Me gusta");
+		JLabel lblContadorMG = new JLabel("X Me gusta");
 		panelContadorMG.add(lblContadorMG);
 		
 		JPanel panelPerfilUsuario = new JPanel();

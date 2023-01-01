@@ -139,4 +139,16 @@ public enum Controlador {
 	public Optional<Usuario> findUsuario(String username) {
 		return RepoUsuarios.INSTANCE.findUsuario(username);
 	}
+	
+	public void darMeGusta (Publicacion f) {
+		f.getUsuario().darMeGusta(f);
+		RepoPublicaciones.INSTANCE.darMeGusta(f);
+	}
+	
+	public void escribirComentario(Publicacion p, String coment) {
+		Comentario c = new Comentario(usuario, coment);
+		p.getUsuario().addComentario(p, c);
+		p.addComentario(c);
+		RepoPublicaciones.INSTANCE.addComentario(p, c);
+	}
 }

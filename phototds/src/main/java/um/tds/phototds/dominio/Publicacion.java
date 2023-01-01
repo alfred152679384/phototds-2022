@@ -84,7 +84,7 @@ public class Publicacion implements Comparable<Publicacion> {
 		return meGustas;
 	}
 
-	public String getMegustas() {
+	public String getMegustasDAO() {
 		return Integer.toString(this.meGustas);
 	}
 	
@@ -109,6 +109,16 @@ public class Publicacion implements Comparable<Publicacion> {
 	}
 
 	// Funcionalidad
+	public boolean addComentario(Comentario c) {
+		this.comentarios.add(c);
+		return true;
+	}
+	
+	public boolean darMeGusta() {
+		this.meGustas++;
+		return true;
+	}
+	
 	protected List<String> detectarHashtags(String s) {
 		List<String> list = new LinkedList<>();
 		String aux = s;

@@ -52,6 +52,9 @@ public enum RepoUsuarios {
 	}
 	
 	public Optional<Usuario> findUsuario(String username) {
+//		usuariosPorLogin.values().stream()
+//			.map(u -> u.getUsername())
+//			.forEach(u -> System.out.println(u));
 		return Optional.ofNullable(usuariosPorLogin.get(username));
 	}
 	

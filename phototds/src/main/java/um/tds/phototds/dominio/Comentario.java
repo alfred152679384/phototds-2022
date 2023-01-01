@@ -42,7 +42,7 @@ public class Comentario {
 		for (int i = 0; i < l.length; i++) {
 			index = l[i].indexOf(";");
 			autor = l[i].substring(0, index);
-			texto = l[i].substring(index);
+			texto = l[i].substring(index+1);
 			list.add(new Comentario(Controlador.INSTANCE.findUsuario(autor).get(),texto));
 		}
 		return list;
@@ -52,9 +52,9 @@ public class Comentario {
 		String s = "[";
 		for (int i = 0; i < list.size(); i++) {
 			if (i == 0)
-				s += list.get(i).getAutor() + ";" + list.get(i).getTexto();
+				s += list.get(i).getAutor().getUsername()+ ";" + list.get(i).getTexto();
 			else
-				s += "," + list.get(i).getAutor() + ";" + list.get(i).getTexto();
+				s += "," + list.get(i).getAutor().getUsername() + ";" + list.get(i).getTexto();
 		}
 		s += "]";
 		return s;

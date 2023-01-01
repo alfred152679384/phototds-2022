@@ -51,6 +51,16 @@ public enum RepoPublicaciones {
 //			}
 		}
 	}
+	
+	public void addComentario(Publicacion p, Comentario c) {
+		this.publicaciones.get(p.getId()).addComentario(c);
+		factoria.getPublicacionDAO().update(p);
+	}
+	
+	public void darMeGusta(Publicacion p) {
+		publicaciones.get(p.getId()).darMeGusta();
+		factoria.getPublicacionDAO().update(p);
+	}
 
 	public void cargarPublicacionesUsuarios() {
 		// Cargamos las publicaciones en los usuarios

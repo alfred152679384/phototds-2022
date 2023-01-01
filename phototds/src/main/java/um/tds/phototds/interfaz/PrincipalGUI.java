@@ -24,6 +24,8 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Image;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.JButton;
 import javax.swing.JTextField;
@@ -35,7 +37,9 @@ import java.io.File;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.awt.GridLayout;
 
 public class PrincipalGUI extends JFrame {
@@ -49,12 +53,13 @@ public class PrincipalGUI extends JFrame {
 	private static final int LIKE_SIZE = 25;
 	private static final int DEFAULT_X = 200;
 	private static final int DEFAULT_Y = 150;
-	private static final int DEFAULT_SCROLL = 16;
+	private static final int DEFAULT_SCROLL = 10;
 	private static final int DEFAULT_FOTOS = 4;
 	private static final int FRAME_SIZE = 600;
 	private static final int COMMENT_SIZE = 20;
 	private static final int ENTRADA_FOTO_PERFIL_SIZE = 50;
 	private static final int CELL_SIZE = FRAME_SIZE / 3 - 12;
+	
 	private static final String LUPA_PATH = "resources\\lupa.png";
 	private static final String OPTIONS_PATH = "resources\\options.png";
 	private static final String LIKE_PATH = "resources\\like.jpg";
@@ -66,6 +71,7 @@ public class PrincipalGUI extends JFrame {
 	private boolean mostrarPerfil;
 	private JPanel panelGeneral;
 	private JPanel panelCentral;
+	private HashMap<ImageIcon, String> mapFotosPerfil;
 
 	/**
 	 * Create the frame. Constructor por defecto muestra la pantalla principal
@@ -240,6 +246,7 @@ public class PrincipalGUI extends JFrame {
 		// Añado el scrollbar
 		JScrollPane scrollListaFotos = new JScrollPane(panelListaFotos);
 		scrollListaFotos.getVerticalScrollBar().setUnitIncrement(DEFAULT_SCROLL);
+		scrollListaFotos.getVerticalScrollBar().setValue(0);
 
 		// Meto el scrollbar en el panel central
 		panelCentral.add(scrollListaFotos);
@@ -247,7 +254,7 @@ public class PrincipalGUI extends JFrame {
 	}
 
 	private void cargarPerfilUsuario() {
-		// Informaciñon del Usuario
+		// Informacion del Usuario
 		JPanel panelInfoUser = new JPanel();
 		panelCentral.add(panelInfoUser);
 		panelInfoUser.setLayout(new BorderLayout(0, 0));
@@ -355,6 +362,7 @@ public class PrincipalGUI extends JFrame {
 		DefaultListModel<ImageIcon> model = new DefaultListModel<>();
 		JList<ImageIcon> lista;
 		BufferedImage foto;
+		this.mapFotosPerfil = new HashMap<>();
 
 		try {// Cargamos las imágenes en el modelo dimensionadas
 			for (Foto f : fotos) {
@@ -370,6 +378,7 @@ public class PrincipalGUI extends JFrame {
 				resizedImage = foto.getScaledInstance((int) size[0], (int) size[1], Image.SCALE_SMOOTH);
 				ImageIcon icon = new ImageIcon(resizedImage);
 
+				this.mapFotosPerfil.put(icon, f.getPath());
 				model.add(cont, icon);
 				cont++;
 			}
@@ -383,16 +392,27 @@ public class PrincipalGUI extends JFrame {
 		lista.setFixedCellWidth(width);
 		lista.setFixedCellHeight(width);
 		lista.setBorder(new LineBorder(Color.black));
+		crearManejadorLista(lista);
 
 		JScrollPane scrollFotos = new JScrollPane(lista);
+		scrollFotos.getVerticalScrollBar().setUnitIncrement(DEFAULT_SCROLL);
+		scrollFotos.getVerticalScrollBar().setValue(0);
 		panelFotos.add(scrollFotos, BorderLayout.CENTER);
+	}
+	
+	private void crearManejadorLista(JList<ImageIcon> lista) {
+		lista.addListSelectionListener(ev -> {
+			File f = new File(this.mapFotosPerfil.get(lista.getSelectedValue()));
+			ShowImageGUI w = new ShowImageGUI(this.framePrincipal, f, ShowImageGUI.MODE_FOTO_ONLY);
+			w.setVisible(true);
+		});
 	}
 
 	private JPanel cargarFotos() {// Cargamos fotos de la pantalla principal
 		// He tenido que insertar Foto ==> La interfaz conoce "ALGO" del dominio
 		List<Foto> aux = Controlador.INSTANCE.getFotosPrincipal();
 		ArrayList<Foto> fotos = new ArrayList<Foto>(aux);
-
+		
 		int padding = 0;
 		JPanel panelListaFotos = new JPanel();
 		if (fotos.size() < DEFAULT_FOTOS) {
@@ -420,6 +440,7 @@ public class PrincipalGUI extends JFrame {
 				System.err.println("Excepción: Fallo al cargar imagen " + f.getPath());
 			}
 			panelFoto.add(picLabel);
+			addManejadorPanelFoto(panelFoto, f.getPath());
 
 			// Añadimos informacion de la foto
 			JPanel panelInfo = new JPanel();
@@ -441,7 +462,6 @@ public class PrincipalGUI extends JFrame {
 			} catch (IOException e) {
 				System.err.println("Excepción: Like Boton");
 			}
-			// TODO Añadir manejador para que funciones
 			panelBtnMG.add(btnMG);
 
 			// Botón comentario
@@ -454,7 +474,7 @@ public class PrincipalGUI extends JFrame {
 			} catch (IOException e) {
 				System.err.println("Excepción: Coment Boton");
 			}
-			// TODO Añadir manejador para que haga cosas
+			addManejadorBtnComentario(btnComentarios, f);
 			panelBtnComentarios.add(btnComentarios);
 
 			// Contador de me gustas
@@ -463,6 +483,10 @@ public class PrincipalGUI extends JFrame {
 
 			JLabel lblContadorMG = new JLabel(f.getMeGustas() + " Me gusta");
 			panelContadorMG.add(lblContadorMG);
+			
+			//Añadimos el manejador del boton de dar Me gusta
+			addManejadorBtnMG(btnMG, panelContadorMG, f);
+			
 
 			// Foto Perfil Usuario
 			JPanel panelPerfilUsuario = new JPanel();
@@ -489,7 +513,7 @@ public class PrincipalGUI extends JFrame {
 			panelPerfilUsuario.add(new JPanel());
 			
 			//Fecha de publicacion
-			JLabel lblFecha = new JLabel("Fecha publicacin: "+f.getFecha().format(Publicacion.HUMAN_FORMATTER));
+			JLabel lblFecha = new JLabel("Fecha publicacion: "+f.getFecha().format(Publicacion.HUMAN_FORMATTER));
 			panelPerfilUsuario.add(lblFecha);
 
 			//Titulo y pie de foto
@@ -498,6 +522,7 @@ public class PrincipalGUI extends JFrame {
 			txtTitulo.setEditable(false);
 			txtTitulo.setLineWrap(true);
 			txtTitulo.setWrapStyleWord(true);
+			txtTitulo.setBorder(new LineBorder(Color.gray));
 			panelInfo.add(txtTitulo);
 
 			panelListaFotos.add(panelEntradaFoto);// Añadimos la foto al gridLayout
@@ -510,10 +535,42 @@ public class PrincipalGUI extends JFrame {
 		}
 		return panelListaFotos;
 	}
+	
+	private void addManejadorBtnComentario(JButton btnComentarios, Foto f) {
+		btnComentarios.addActionListener(ev -> {
+			PresentationGUI w = new PresentationGUI(framePrincipal,PresentationGUI.MODE_COMENTARIO);
+			w.mostrarVentana();
+			Optional<String> optComentario = w.getTexto();
+			if(optComentario.isPresent() && !optComentario.get().equals("")) {
+				Controlador.INSTANCE.escribirComentario(f, optComentario.get());
+			}
+		});
+	}
+	
+	private void addManejadorBtnMG(JButton btnMG, JPanel panelContadorMG, Foto f) {
+		btnMG.addActionListener(ev -> {
+			Controlador.INSTANCE.darMeGusta(f);
+			panelContadorMG.removeAll();
+			JLabel newLabelContadorMG = new JLabel(f.getMeGustas() + " Me gusta");
+			panelContadorMG.add(newLabelContadorMG);
+			framePrincipal.revalidate();
+			framePrincipal.repaint();
+		});
+	}
+	
+	private void addManejadorPanelFoto(JPanel p, String path) {
+		p.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				File fi = new File(path);
+				ShowImageGUI w = new ShowImageGUI(framePrincipal, fi, ShowImageGUI.MODE_FOTO_ONLY);
+				w.setVisible(true);
+			}
+		});
+	}
 
 	private void addManejadorBtnAddFoto(JButton btnAddFoto) {
 		btnAddFoto.addActionListener(e -> {
-			AddFotoGUI w = new AddFotoGUI(this.framePrincipal);
+			AddFotoGUI w = new AddFotoGUI(this.framePrincipal, mostrarPerfil);
 			w.setVisible(true);
 			framePrincipal.setVisible(false);
 		});

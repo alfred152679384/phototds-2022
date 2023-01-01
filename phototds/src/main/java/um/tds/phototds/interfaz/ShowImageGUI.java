@@ -23,30 +23,47 @@ public class ShowImageGUI extends JDialog {
 	// Necesario para eliminar warnings
 	private static final long serialVersionUID = 1L;
 	// Constantes
-	private static final double DEFAULT_X = 350.0;
-	private static final double DEFAULT_Y = 325.0;
+	private static final double DEFAULT_X = 400.0;
+	private static final double DEFAULT_Y = 400.0;
 	private static final int BOUND_X = 600;
 	private static final int BOUND_Y = 300;
 	private static final int DEFAULT_PROP = 100;
+	public static final int MODE_FOTO_ONLY = 0;
+	public static final int MODE_PUBLICAR_FOTO = 1;
 	
 	//Atributos
 	private File imageFile;
 	private JTextArea textTitulo;
 	private JTextArea textDesc;
+	private ImageIcon iconImage;
+	private int mode;
 
+	//Constructores
 	public ShowImageGUI(JFrame owner, File imageFile) {
-		super(owner, "Añadir Foto", true);
+		super(owner, "Mostrar Foto", true);
 		this.imageFile = imageFile;
+		this.mode = MODE_PUBLICAR_FOTO;
 		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setResizable(false);
 		initialize();
 	}
-
+	
+	public ShowImageGUI(JFrame owner, File imageFile, int mode) {
+		super(owner, "Mostrar Foto", true);
+		this.imageFile = imageFile;
+		this.mode = mode;
+		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		this.setResizable(false);
+		initialize();
+	}
+	
 	private void initialize() {
 		getContentPane().setLayout(new BorderLayout(5, 5));
 		crearPanelFoto();
-		crearPanelComentarios();
-		crearBotones();
+		if(mode == MODE_PUBLICAR_FOTO) {
+			crearPanelComentarios();
+			crearBotones();
+		}
 	}
 	
 	private void crearBotones() {
@@ -116,7 +133,7 @@ public class ShowImageGUI extends JDialog {
 		panelComentario.add(panelDescNorte, BorderLayout.NORTH);
 
 		//Pie de foto
-		JLabel lblComentario = new JLabel("Escribe un comentario");
+		JLabel lblComentario = new JLabel("Escribe una descripción");
 		panelDescNorte.add(lblComentario);
 
 		JPanel panelDescCentro = new JPanel();

@@ -87,7 +87,7 @@ public final class TDSPublicacionDAO implements PublicacionDAO {
 						new Propiedad(TITULO, f.getTitulo()), 
 						new Propiedad(FECHA, f.getFechaDAO()),
 						new Propiedad(DESCRIPCION, f.getDescripcion()), 
-						new Propiedad(ME_GUSTAS, f.getMegustas()),
+						new Propiedad(ME_GUSTAS, f.getMegustasDAO()),
 						new Propiedad(HASHTAGS, f.getHashtagsDAO()),
 						new Propiedad(COMENTARIOS, f.getComentariosDAO()), 
 						new Propiedad(PATH, f.getPath()))));
@@ -103,7 +103,7 @@ public final class TDSPublicacionDAO implements PublicacionDAO {
 				new Propiedad(TITULO, a.getTitulo()),
 				new Propiedad(FECHA, a.getFechaDAO()),
 				new Propiedad(DESCRIPCION, a.getDescripcion()),
-				new Propiedad(ME_GUSTAS, a.getMegustas()),
+				new Propiedad(ME_GUSTAS, a.getMegustasDAO()),
 				new Propiedad(HASHTAGS, a.getHashtagsDAO()),
 				new Propiedad(COMENTARIOS, a.getComentariosDAO()),
 				new Propiedad(LISTA_FOTOS, a.getListaFotosString())
@@ -137,6 +137,10 @@ public final class TDSPublicacionDAO implements PublicacionDAO {
 				p.setValor(pb.getTitulo());
 			} else if (p.getNombre().equals(DESCRIPCION)) {
 				p.setValor(pb.getDescripcion());
+			} else if(p.getNombre().equals(ME_GUSTAS)) {
+				p.setValor(pb.getMegustasDAO());
+			} else if(p.getNombre().equals(COMENTARIOS)) {
+				p.setValor(pb.getComentariosDAO());
 			}
 			servPersistencia.modificarPropiedad(p);
 		}

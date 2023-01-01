@@ -152,7 +152,20 @@ public class Usuario {
 		this.publicaciones.add(p);
 	}
 	
+	public void darMeGusta(Publicacion f) {
+		publicaciones.stream()
+			.filter(p -> p.getId() == f.getId())
+			.map(p -> p.darMeGusta());
+	}
+	
+	public void addComentario(Publicacion f, Comentario c) {
+		publicaciones.stream()
+			.filter(p -> p.getId() == f.getId())
+			.map(p -> p.addComentario(c));
+	}
+	
 	public List<Foto> getFotosPrincipal() {
+		//Devuelvo mis fotos y las de la gente que sigo
 		List<Foto> fotos = publicaciones.stream()
 			.filter(p -> p instanceof Foto)
 			.map(p -> (Foto) p)
@@ -161,10 +174,12 @@ public class Usuario {
 		fotos.addAll(seguidos.stream()
 			.flatMap(u -> u.getFotosPerfil().stream())
 			.collect(Collectors.toList()));
-		
-		//TODO
-		fotos.sort(null);
-		return fotos;
+
+		fotos.sort(null);//Ordena por el comparable
+		if(fotos.size()>20)
+			return fotos.subList(0, 20);
+		else
+			return fotos;
 	}
 	
 	public List<Foto> getFotosPerfil(){
