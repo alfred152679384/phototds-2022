@@ -12,6 +12,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+
+import um.tds.phototds.controlador.Controlador;
+
 import javax.swing.JLabel;
 import javax.swing.JTextArea;
 
@@ -22,6 +25,7 @@ public class PresentationGUI extends JDialog {
 	//Constantes
 	public static final int MODE_PRESENTACION = 0;
 	public static final int MODE_COMENTARIO= 1;
+	public static final int MODE_UPDATE = 2;
 	
 	//Atributos
 	private final JPanel contentPanel = new JPanel();
@@ -85,6 +89,8 @@ public class PresentationGUI extends JDialog {
 				txtPresentacion.setBorder(new LineBorder(Color.black, 1));
 				txtPresentacion.setWrapStyleWord(true);
 				txtPresentacion.setLineWrap(true);
+				if(mode == MODE_UPDATE)
+					txtPresentacion.setText(Controlador.INSTANCE.getPresentacionUsuarioActual());
 			}
 			
 			JScrollPane sc = new JScrollPane(txtPresentacion);

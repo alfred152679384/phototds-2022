@@ -105,8 +105,8 @@ public final class TDSPublicacionDAO implements PublicacionDAO {
 				new Propiedad(DESCRIPCION, a.getDescripcion()),
 				new Propiedad(ME_GUSTAS, a.getMegustasDAO()),
 				new Propiedad(HASHTAGS, a.getHashtagsDAO()),
-				new Propiedad(COMENTARIOS, a.getComentariosDAO()),
-				new Propiedad(LISTA_FOTOS, a.getListaFotosString())
+				new Propiedad(COMENTARIOS, a.getComentariosDAO())
+//	TODO			new Propiedad(LISTA_FOTOS, a.getListaFotosString())
 				)));
 		return eAlbum;
 	}

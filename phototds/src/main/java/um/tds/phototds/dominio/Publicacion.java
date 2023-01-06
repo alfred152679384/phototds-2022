@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import um.tds.phototds.controlador.Controlador;
 
@@ -91,6 +92,10 @@ public class Publicacion implements Comparable<Publicacion> {
 	public String getHashtagsDAO() {
 		return hashtagToStringDAO();
 	}
+	
+	public List<String> getHashtags(){
+		return Collections.unmodifiableList(this.hashtags);
+	}
 
 	public List<Comentario> getComentarios() {
 		return Collections.unmodifiableList(this.comentarios);
@@ -98,6 +103,13 @@ public class Publicacion implements Comparable<Publicacion> {
 
 	public String getComentariosDAO() {
 		return Comentario.comentariosToString(this.comentarios);
+	}
+	
+	public String getHashtagContaining(String hashtag) {
+		List<String> h = hashtags.stream()
+			.filter(s -> s.contains(hashtag))
+			.collect(Collectors.toList());
+		return h.get(0);
 	}
 
 	public int getId() {
@@ -123,12 +135,16 @@ public class Publicacion implements Comparable<Publicacion> {
 		List<String> list = new LinkedList<>();
 		String aux = s;
 		String hashtag;
-		int index;
-		while ((index = aux.indexOf(AlMOHADILLA)) != -1) {
-			aux = aux.substring(index);
-			hashtag = aux.substring(index, aux.indexOf(SPACE));// Acotamos el hashtag
+		int i, f;
+		while ((i = aux.indexOf(AlMOHADILLA)) != -1) {
+			aux = aux.substring(i);
+			i = 0;
+			f = aux.indexOf(SPACE);
+			if (f == -1)
+				f = aux.length();
+			hashtag = aux.substring(i, f);
 			list.add(hashtag);
-			aux = aux.substring(aux.indexOf(SPACE));// Actualizamos aux
+			aux = aux.substring(f);
 		}
 		return list;
 	}
@@ -150,7 +166,7 @@ public class Publicacion implements Comparable<Publicacion> {
 			return Collections.emptyList();
 		List<String> list = new LinkedList<>();
 		String aux = s.substring(1, s.length() - 1);
-		String[] l = s.split(",");
+		String[] l = aux.split(",");
 		for (int i = 0; i < l.length; i++) {
 			list.add(l[i]);
 		}

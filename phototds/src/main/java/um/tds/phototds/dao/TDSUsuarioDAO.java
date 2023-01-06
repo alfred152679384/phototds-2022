@@ -76,8 +76,8 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 				new Propiedad(FOTO_PERFIL, usuario.getFotoPerfilDAO()), 
 				new Propiedad(PRESENTACION, usuario.getDAOPresentacion()),
 				new Propiedad(PREMIUM, usuario.isPremiumDAO()),
-				new Propiedad(SEGUIDORES, usuario.getSeguidoresString()),
-				new Propiedad(SEGUIDOS, usuario.getSeguidosString())
+				new Propiedad(SEGUIDORES, usuario.getSeguidoresDAO()),
+				new Propiedad(SEGUIDOS, usuario.getSeguidosDAO())
 				)));
 		return eUsuario;
 	}

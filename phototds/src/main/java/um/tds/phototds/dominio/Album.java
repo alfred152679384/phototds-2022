@@ -23,19 +23,9 @@ public class Album extends Publicacion{
 		}
 
 	//getters-setters
-	public LinkedList<Foto> getListaFotos() {
-		return listaFotos;
-	}
-
-	public String getListaFotosString() {
-		return listaFotos.toString();
-	}
+	
 	
 	//Funcionalidad
-	
-	public void addFoto(Foto foto) {
-		listaFotos.add(foto);
-	}
-	
+		
 	
 }

@@ -29,10 +29,13 @@ import um.tds.phototds.controlador.Controlador;
 
 public class RegisterGUI extends JDialog {
 	// Constantes
-	private static final long serialVersionUID = 1L;//Necesaria para quitar warnigns
+	private static final long serialVersionUID = 1L;// Necesaria para quitar warnigns
 	private static final int DEFAULT_H = 600;
 	private static final int DEFAULT_W = 400;
 	private static final int DEFAULT_COLUMNS = 30;
+
+	public static final int MODE_REGISTER = 0;
+	public static final int MODE_UPDATE = 1;
 
 	// variables
 	private JFrame owner;
@@ -43,18 +46,35 @@ public class RegisterGUI extends JDialog {
 	private JTextField txtContras;
 	private Optional<String> fotoPerfil;
 	private Optional<String> presentacion;
+	private int mode;
+	private boolean ok;
 
 	/**
 	 * Create the application.
 	 */
 	public RegisterGUI(JFrame owner) {
 		super(owner, "Registro de Usuario", true);
+		this.mode = MODE_REGISTER;
 		this.owner = owner;
 		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setResizable(false);
 		this.setBounds(owner.getX(), owner.getY(), DEFAULT_W, DEFAULT_H);
 		this.fotoPerfil = Optional.empty();
 		this.presentacion = Optional.empty();
+		this.ok = false;
+		initialize();
+	}
+
+	public RegisterGUI(JFrame owner, int mode) {
+		super(owner, "Actualizacion de Usuario", true);
+		this.mode = mode;
+		this.owner = owner;
+		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		this.setResizable(false);
+		this.setBounds(owner.getX(), owner.getY(), DEFAULT_W, DEFAULT_H);
+		this.fotoPerfil = Optional.empty();
+		this.presentacion = Optional.empty();
+		this.ok = false;
 		initialize();
 	}
 
@@ -141,18 +161,24 @@ public class RegisterGUI extends JDialog {
 		JPanel panelEmail = new JPanel();
 		txtEmail = new JTextField("Email");
 		txtEmail.setColumns(DEFAULT_COLUMNS);
+		if (mode == MODE_UPDATE)
+			txtEmail.setEditable(false);
 		panelEmail.add(txtEmail);
 		panelCentral.add(panelEmail);
 
 		JPanel panelNombre = new JPanel();
 		txtNombre = new JTextField("Nombre Completo");
 		txtNombre.setColumns(DEFAULT_COLUMNS);
+		if (mode == MODE_UPDATE)
+			txtNombre.setEditable(false);
 		panelNombre.add(txtNombre);
 		panelCentral.add(panelNombre);
 
 		JPanel panelUsuario = new JPanel();
 		txtUsuario = new JTextField("Nombre de Usuario");
 		txtUsuario.setColumns(DEFAULT_COLUMNS);
+		if (mode == MODE_UPDATE)
+			txtUsuario.setEditable(false);
 		panelUsuario.add(txtUsuario);
 		panelCentral.add(panelUsuario);
 
@@ -203,9 +229,16 @@ public class RegisterGUI extends JDialog {
 
 	private void addManejadorBtnPresentacion(JButton btn) {
 		btn.addActionListener(ev -> {
-			PresentationGUI w = new PresentationGUI(owner);
-			w.mostrarVentana();
-			this.presentacion = w.getTexto();
+			if (mode == MODE_REGISTER) {
+				PresentationGUI w = new PresentationGUI(owner);
+				w.mostrarVentana();
+				this.presentacion = w.getTexto();
+			}
+			else {
+				PresentationGUI w = new PresentationGUI(owner, PresentationGUI.MODE_UPDATE);
+				w.mostrarVentana();
+				this.presentacion = w.getTexto();
+			}
 		});
 	}
 
@@ -223,64 +256,79 @@ public class RegisterGUI extends JDialog {
 		this.chooser = new JDateChooser();
 		chooser.setFont(new Font("Tahoma", Font.PLAIN, 10));
 		chooser.setDateFormatString("yyyy-MM-dd");
+		if (mode == MODE_UPDATE)
+			chooser.setEnabled(false);
 		p.add(chooser);
 	}
 
 	private void addManejadorBtnOK(JButton btnOK) {
-		btnOK.addActionListener(ev -> {
-			// Comprobación de errores
-			// Campo fecha vacío
-			Date date = chooser.getDate();
-			if (date == null) {
-				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir la fecha de nacimiento", "Error",
-						JOptionPane.ERROR_MESSAGE);
-				return;
-			}
-			DateFormat df = DateFormat.getDateInstance();
+		if (mode == MODE_REGISTER) {
+			btnOK.addActionListener(ev -> {
+				// Comprobación de errores
+				// Campo fecha vacío
+				Date date = chooser.getDate();
+				if (date == null) {
+					JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir la fecha de nacimiento", "Error",
+							JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				DateFormat df = DateFormat.getDateInstance();
 
-			// Campo Email vacio
-			String email = txtEmail.getText();
-			if (email.equals("") || email.equals("Email")) {
-				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir un Email", "Error",
-						JOptionPane.ERROR_MESSAGE);
-				return;
-			}
+				// Campo Email vacio
+				String email = txtEmail.getText();
+				if (email.equals("") || email.equals("Email")) {
+					JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir un Email", "Error",
+							JOptionPane.ERROR_MESSAGE);
+					return;
+				}
 
-			// Campo Nombre vacío
-			String nombre = txtNombre.getText();
-			if (nombre.equals("") || nombre.equals("Nombre Completo")) {
-				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir su nombre completo", "Error",
-						JOptionPane.ERROR_MESSAGE);
-				return;
-			}
+				// Campo Nombre vacío
+				String nombre = txtNombre.getText();
+				if (nombre.equals("") || nombre.equals("Nombre Completo")) {
+					JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir su nombre completo", "Error",
+							JOptionPane.ERROR_MESSAGE);
+					return;
+				}
 
-			// Campo Username vacío
-			String username = txtUsuario.getText();
-			if (username.equals("") || username.equals("Nombre de Usuario")) {
-				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir un nombre de usuario", "Error",
-						JOptionPane.ERROR_MESSAGE);
-				return;
-			}
+				// Campo Username vacío
+				String username = txtUsuario.getText();
+				if (username.equals("") || username.equals("Nombre de Usuario")) {
+					JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir un nombre de usuario", "Error",
+							JOptionPane.ERROR_MESSAGE);
+					return;
+				}
 
-			// Campo contraseña vacío
-			String password = txtContras.getText();
-			if (password.equals("") || password.equals("Contraseña")) {
-				JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir una contraseña", "Error",
-						JOptionPane.ERROR_MESSAGE);
-				return;
-			}
+				// Campo contraseña vacío
+				String password = txtContras.getText();
+				if (password.equals("") || password.equals("Contraseña")) {
+					JOptionPane.showMessageDialog(RegisterGUI.this, "Debe introducir una contraseña", "Error",
+							JOptionPane.ERROR_MESSAGE);
+					return;
+				}
 
-			// Caso de todos los campos necesarios completos --> Intenta registrar
-			if (Controlador.INSTANCE.registerUser(username, nombre, email, password, df.format(date), fotoPerfil,
-					presentacion)) {
-				JOptionPane.showMessageDialog(RegisterGUI.this, "Usuario registrado correctamente");
+				// Caso de todos los campos necesarios completos --> Intenta registrar
+				if (Controlador.INSTANCE.registerUser(username, nombre, email, password, df.format(date), fotoPerfil,
+						presentacion)) {
+					JOptionPane.showMessageDialog(RegisterGUI.this, "Usuario registrado correctamente");
+					RegisterGUI.this.dispose();
+				} else {
+					JOptionPane.showMessageDialog(RegisterGUI.this, "El usuario ya existe", "Error",
+							JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+			});
+		} else {
+			btnOK.addActionListener(ev -> {
+				this.ok = true;
+				Optional<String> pass;
+				if (txtContras.getText().equals("") || txtContras.getText().equals("Contraseña"))
+					pass = Optional.empty();
+				else
+					pass = Optional.of(this.txtContras.getText());
+				Controlador.INSTANCE.updateUser(pass, fotoPerfil, presentacion);
 				RegisterGUI.this.dispose();
-			} else {
-				JOptionPane.showMessageDialog(RegisterGUI.this, "El usuario ya existe", "Error",
-						JOptionPane.ERROR_MESSAGE);
-				return;
-			}
-		});
+			});
+		}
 	}
 
 	private void addManejadorBtnCancel(JButton btnCancel) {
@@ -289,5 +337,9 @@ public class RegisterGUI extends JDialog {
 				RegisterGUI.this.dispose();
 			}
 		});
+	}
+	
+	public boolean getOk() {
+		return this.ok;
 	}
 }
