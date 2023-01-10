@@ -1,6 +1,8 @@
 package um.tds.phototds.dao;
 
 import java.util.List;
+
+import um.tds.phototds.dominio.Foto;
 import um.tds.phototds.dominio.Publicacion;
 
 public interface PublicacionDAO {
@@ -10,4 +12,5 @@ public interface PublicacionDAO {
 	void update(Publicacion publicacion);
 	Publicacion get(int id);
 	List<Publicacion> getAll();
+	void addFotosAlbum(int idAlbum, List<Foto> fList);
 }

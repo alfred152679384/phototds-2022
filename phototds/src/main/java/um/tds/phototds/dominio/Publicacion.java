@@ -27,7 +27,7 @@ public class Publicacion implements Comparable<Publicacion> {
 	private LocalDateTime fecha;
 	private String descripcion;
 	private int meGustas;
-	private LinkedList<String> hashtags;// TODO
+	private LinkedList<String> hashtags;
 	private LinkedList<Comentario> comentarios;
 
 	// Constructor básico
@@ -178,7 +178,6 @@ public class Publicacion implements Comparable<Publicacion> {
 	}
 	
 	public int compareTo (Publicacion p) {
-//		return getFecha().compareTo(p.getFecha());
 		return p.getFecha().compareTo(getFecha());
 	}
 

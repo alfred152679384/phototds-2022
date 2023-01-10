@@ -37,7 +37,9 @@ public class AddFotoGUI extends JDialog {// Añadir fotos por drag and drop o de
 	private List<ComunicacionConGUI> comList;
 
 	/**
-	 * Create the dialog.
+	 * Constructor para añadir fotos 
+	 * @param owner
+	 * @param type false para abrir pantalla principal, true para abrir perfil de usuario
 	 */
 	public AddFotoGUI(JFrame owner, boolean type) {
 		super(owner, "Añadir Foto", true);
@@ -50,12 +52,16 @@ public class AddFotoGUI extends JDialog {// Añadir fotos por drag and drop o de
 		initialize();
 	}
 
-	public AddFotoGUI(JFrame owner, boolean type, int mode) {
+	/**
+	 * Constructor de addfotogui para añadir fotos a albumes
+	 * @param owner
+	 * @param mode
+	 */
+	public AddFotoGUI(JFrame owner, int mode) {
 		super(owner, "Añadir Foto", true);
 		this.mode = mode;
 		if (mode == MODE_ALBUM)
 			this.setTitle("Añadir Album");
-		this.type = type;
 		this.owner = owner;
 		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setResizable(false);
@@ -69,7 +75,7 @@ public class AddFotoGUI extends JDialog {// Añadir fotos por drag and drop o de
 		this.getContentPane().add(panelGeneral);
 		panelGeneral.setContentType("text/html");
 		panelGeneral.setText(
-				"<h1>Agregar Foto</h1><p>Anímate a compartir una foto con tus amigos. <br> <h2>Arrastra la foto aquí.<h2> </p>");
+				"<center><h1>Agregar Foto</h1><p>Anímate a compartir una foto con tus amigos. <br> <h2>Arrastra la foto aquí.<h2> </p></center>");
 		panelGeneral.setEditable(false);
 
 		crearDragNDrop();

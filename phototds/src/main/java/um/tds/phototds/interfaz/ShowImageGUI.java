@@ -27,8 +27,8 @@ public class ShowImageGUI extends JDialog {
 	// Constantes
 	private static final double DEFAULT_X = 400.0;
 	private static final double DEFAULT_Y = 400.0;
-	private static final int BOUND_X = 600;
-	private static final int BOUND_Y = 300;
+	private static final int BOUND_X = 700;
+	private static final int BOUND_Y = 400;
 	private static final int DEFAULT_PROP = 100;
 
 	public static final int MODE_FOTO_ONLY = 0;
@@ -45,7 +45,12 @@ public class ShowImageGUI extends JDialog {
 	private int mode;
 	private boolean ok;
 
-	// Constructores
+	//Constructores
+	/**
+	 * Constructor para publicar foto
+	 * @param owner
+	 * @param imageFile
+	 */
 	public ShowImageGUI(JFrame owner, File imageFile) {
 		super(owner, "Mostrar Foto", true);
 		this.imageFile = imageFile;
@@ -182,7 +187,7 @@ public class ShowImageGUI extends JDialog {
 		JPanel panelDescCentro = new JPanel();
 		panelComentario.add(panelDescCentro);
 
-		textDesc = new JTextArea(15, 20);
+		textDesc = new JTextArea(10, 20);
 		textDesc.setWrapStyleWord(true);
 		textDesc.setTabSize(4);
 		textDesc.setLineWrap(true);

@@ -47,8 +47,8 @@ public enum Controlador {
 	}
 
 	public List<ComunicacionConGUI> getFotosPrincipal() {
-		List<Foto> listFoto = usuario.getFotosPrincipal();
 		List<ComunicacionConGUI> listCom = new LinkedList<>();
+		List<Foto> listFoto = usuario.getFotosPrincipal();
 		for (Foto f : listFoto) {
 			listCom.add(new ComunicacionConGUI(f.getId(), f.getUsuario().getUsername(), f.getPath(), f.getFecha(),
 					f.getMeGustas(), f.getTitulo(), f.getDescripcion()));
@@ -57,15 +57,26 @@ public enum Controlador {
 	}
 
 	public List<ComunicacionConGUI> getFotosPerfil(String username) {
-		Optional<Usuario> u = RepoUsuarios.INSTANCE.findUsuario(username);
-		if (u.isEmpty())
-			return Collections.emptyList();
-		List<Foto> listFoto = u.get().getFotosPerfil();
+		List<Foto> listFoto = RepoUsuarios.INSTANCE.getFotosPerfil(username);
 		List<ComunicacionConGUI> listCom = new LinkedList<>();
 		for (Foto f : listFoto) {
 			listCom.add(new ComunicacionConGUI(f.getId(), f.getPath()));
 		}
 		return listCom;
+	}
+
+	public List<ComunicacionConGUI> getAlbumesPerfil(String username) {
+		List<Album> listAlbum = RepoUsuarios.INSTANCE.getAlbumesPerfil(username);
+		List<ComunicacionConGUI> comListAlbum = new LinkedList<>();
+		for (Album a : listAlbum) {
+			List<ComunicacionConGUI> comListFoto = new LinkedList<>();
+			for (Foto f : a.getListaFotos()) {
+				ComunicacionConGUI c = new ComunicacionConGUI(f.getId(), f.getPath());
+				comListFoto.add(c);
+			}
+			comListAlbum.add(new ComunicacionConGUI(a.getId(), a.getTitulo(), a.getDescripcion(), comListFoto));
+		}
+		return comListAlbum;
 	}
 
 	public String getFotoPerfilUsuarioActual() {
@@ -83,12 +94,16 @@ public enum Controlador {
 	public Collection<Usuario> getUsuariosRegistrados() {
 		return RepoUsuarios.INSTANCE.getUsuariosRegistrados();
 	}
-	
+
 	public String getPresentacionUsuarioActual() {
 		Optional<String> p = usuario.getPresentacion();
-		if(p.isEmpty())
+		if (p.isEmpty())
 			return "";
 		return p.get();
+	}
+
+	public boolean isUsuarioActualPremium() {
+		return this.usuario.isPremium();
 	}
 
 	public int getNumPublicaciones(String username) {
@@ -142,16 +157,19 @@ public enum Controlador {
 	}
 
 	public void updateUser(Optional<String> password, Optional<String> fotoPerfil, Optional<String> presentacion) {
-		if(password.isPresent())
+		if (password.isPresent())
 			usuario.setPassword(password.get());
-		if(fotoPerfil.isPresent())
+		if (fotoPerfil.isPresent())
 			usuario.setFotoPerfil(fotoPerfil.get());
-		if(presentacion.isPresent())
+		if (presentacion.isPresent())
 			usuario.setPresentacion(presentacion.get());
-		
+
 		factoria.getUsuarioDAO().update(usuario);
 	}
 
+	public void seguirUsuario(String username) {
+		RepoUsuarios.INSTANCE.seguirUsuario(this.usuario, username);
+	}
 
 	public boolean addFoto(String path, String title, String desc) {
 		Publicacion p = new Foto(this.usuario, title, desc, path);
@@ -161,17 +179,35 @@ public enum Controlador {
 		usuario.addPublicacion(p);
 		return true;
 	}
-	
+
 	public void addAlbum(String titulo, String descripcion, List<ComunicacionConGUI> comList) {
-		System.out.println("AÑADO ALBUM!");
+		Album a = new Album(usuario, titulo, descripcion, comList);
+		Publicacion p = (Publicacion) a;
+		PublicacionDAO daoAlbum = factoria.getPublicacionDAO();
+		daoAlbum.create(p);
+		RepoPublicaciones.INSTANCE.addPublicacion(p);
+		usuario.addPublicacion(p);
 	}
-	
+
+	public void addFotosToAlbum(int idAlbum, List<ComunicacionConGUI> comList) {
+		List<Foto> listFotos = new LinkedList<>();
+		for (ComunicacionConGUI c : comList) {
+			Foto f = new Foto(usuario, c.getTitulo(), c.getDescripcion(), c.getPathFoto());
+			listFotos.add(f);
+		}
+		RepoPublicaciones.INSTANCE.addFotosToAlbum(idAlbum, listFotos);
+	}
+
 	public boolean comprobarTituloAlbum(String tit) {
 		return RepoPublicaciones.INSTANCE.comprobarTituloAlbum(tit);
 	}
 
 	public Optional<Usuario> findUsuario(String username) {
 		return RepoUsuarios.INSTANCE.findUsuario(username);
+	}
+
+	public Optional<Publicacion> findPublicacion(int id) {
+		return RepoPublicaciones.INSTANCE.findPublicacion(id);
 	}
 
 	public void darMeGusta(int idPublicacion) {
@@ -181,16 +217,37 @@ public enum Controlador {
 	public void escribirComentario(int idPubli, String coment) {
 		RepoPublicaciones.INSTANCE.addComentario(idPubli, coment);
 	}
+	
+	public void setUsuarioActualPremium() {
+		usuario.setPremium(true);
+		factoria.getUsuarioDAO().update(usuario);
+	}
+
+	public double comprobarDescuento(int mode) {
+		double precio = 5;// Precio: 5€
+		switch (mode) {
+		case 0:
+			DescuentoEdad d = new DescuentoEdad(usuario);
+			return precio * (1 - d.getDescuento());
+		
+		case 1:
+			DescuentoMeGustas d2 = new DescuentoMeGustas(usuario);
+			return precio * (1 - d2.getDescuento());
+		
+		default:
+		}
+		
+		return precio;
+	}
 
 	public List<ComunicacionConGUI> lookFor(String txt) {
 		List<ComunicacionConGUI> r = new LinkedList<>();
-		if (txt.startsWith("#")) {// TODO con albumes
+		if (txt.startsWith("#")) {
 			List<Publicacion> l = RepoPublicaciones.INSTANCE.lookForPublicacion(txt);
 			if (l.isEmpty())
 				return Collections.emptyList();
 			for (Publicacion p : l) {
-				Foto f = (Foto) p;
-				r.add(new ComunicacionConGUI(p.getHashtagContaining(txt), f.getUsuario().getNumSeguidores(),
+				r.add(new ComunicacionConGUI(p.getHashtagContaining(txt), p.getUsuario().getNumSeguidores(),
 						p.getUsuario().getUsername()));
 			}
 			return r;

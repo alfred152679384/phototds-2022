@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Optional;
 
@@ -272,7 +273,7 @@ public class RegisterGUI extends JDialog {
 							JOptionPane.ERROR_MESSAGE);
 					return;
 				}
-				DateFormat df = DateFormat.getDateInstance();
+				DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 
 				// Campo Email vacio
 				String email = txtEmail.getText();

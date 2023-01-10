@@ -29,6 +29,7 @@ public class CrearAlbumGUI extends JDialog {
 	private JPanel panelCentral;
 	private JTextField txtTitulo;
 	private JTextArea txtDescripcion;
+	private boolean ok;
 
 	/**
 	 * Create the dialog.
@@ -36,6 +37,7 @@ public class CrearAlbumGUI extends JDialog {
 	public CrearAlbumGUI(JFrame owner) {
 		super(owner, true);
 		this.owner = owner;
+		this.ok = false;
 		setBounds(500, 100, 300, 300);
 		getContentPane().setLayout(new BorderLayout());
 		initialize();
@@ -101,7 +103,6 @@ public class CrearAlbumGUI extends JDialog {
 		getContentPane().add(panelSur, BorderLayout.SOUTH);
 		{
 			JButton okButton = new JButton("OK");
-			okButton.setActionCommand("OK");
 			addManejadorBtnOK(okButton);
 			panelSur.add(okButton);
 			getRootPane().setDefaultButton(okButton);
@@ -111,6 +112,7 @@ public class CrearAlbumGUI extends JDialog {
 			cancelButton.setActionCommand("Cancel");
 			cancelButton.addActionListener(ev -> {
 				CrearAlbumGUI.this.dispose();
+				this.ok = false;
 			});
 			panelSur.add(cancelButton);
 		}
@@ -133,11 +135,16 @@ public class CrearAlbumGUI extends JDialog {
 			}
 			
 			//Cogemos las fotos
-			AddFotoGUI w = new AddFotoGUI(owner, true, AddFotoGUI.MODE_ALBUM);
+			this.ok = true;
+			AddFotoGUI w = new AddFotoGUI(owner, AddFotoGUI.MODE_ALBUM);
 			w.setVisible(true);
 			Controlador.INSTANCE.addAlbum(titulo, txtDescripcion.getText(), w.getListFotos());
 			CrearAlbumGUI.this.dispose();
 		});
+	}
+	
+	public boolean getOk() {
+		return this.ok;
 	}
 	
 }

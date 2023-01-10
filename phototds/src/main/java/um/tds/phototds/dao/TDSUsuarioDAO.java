@@ -3,6 +3,7 @@ package um.tds.phototds.dao;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -36,14 +37,14 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 	public TDSUsuarioDAO() {
 		try {
 			servPersistencia = FactoriaServicioPersistencia.getInstance().getServicioPersistencia();
-		}catch(Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 	}
 
-	private Usuario entidadToUsuario(Entidad eUsuario) {
-		//Recupeerar Usuarios del servidor
+	private Usuario entidadToUsuario(Entidad eUsuario, boolean mode) {
+		// Recupeerar Usuarios del servidor
 		String username = servPersistencia.recuperarPropiedadEntidad(eUsuario, USERNAME);
 		String nombre = servPersistencia.recuperarPropiedadEntidad(eUsuario, NOMBRE);
 		String email = servPersistencia.recuperarPropiedadEntidad(eUsuario, EMAIL);
@@ -52,33 +53,65 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 		String fotoPerfil = servPersistencia.recuperarPropiedadEntidad(eUsuario, FOTO_PERFIL);
 		String presentacion = servPersistencia.recuperarPropiedadEntidad(eUsuario, PRESENTACION);
 		String isPremium = servPersistencia.recuperarPropiedadEntidad(eUsuario, PREMIUM);
-		//Publicaciones no se guarda aquí porque se hace ya en RepoPublicaciones
+		// Publicaciones no se guarda aquí porque se hace ya en RepoPublicaciones
 		String listaSeguidores = servPersistencia.recuperarPropiedadEntidad(eUsuario, SEGUIDORES);
 		String listaSeguidos = servPersistencia.recuperarPropiedadEntidad(eUsuario, SEGUIDOS);
-		
+
+		List<Usuario> seguidos = new LinkedList<>();
+		if (!mode)
+			seguidos.addAll(cargarUsuariosSeguidos(listaSeguidos));
+
+		List<Usuario> seguidores = new LinkedList<>();
+		if (!mode)
+			seguidores.addAll(cargarUsuariosSeguidores(listaSeguidores));
+
 		Usuario usuario = new Usuario(username, nombre, email, password, fechaNacimiento, fotoPerfil, presentacion,
-				isPremium,  listaSeguidores, listaSeguidos);
+				isPremium, listaSeguidores, listaSeguidos);
+		usuario.setSeguidoresDAO(seguidores);
+		usuario.setSeguidosDAO(seguidos);
 		usuario.setId(eUsuario.getId());
 
 		return usuario;
+	}
+
+	private List<Usuario> cargarUsuariosSeguidores(String listaSeguidores) {
+		if (listaSeguidores.equals("[]"))
+			return Collections.emptyList();
+		List<Usuario> seguidores = new LinkedList<>();
+		String aux = listaSeguidores.substring(1, listaSeguidores.length() - 1);
+		String[] users = aux.split(",");
+		for (String s : users) {
+			Entidad eUsuario = servPersistencia.recuperarEntidad(Integer.parseInt(s));
+			seguidores.add(entidadToUsuario(eUsuario, true));
+		}
+		return seguidores;
+	}
+
+	private List<Usuario> cargarUsuariosSeguidos(String listaSeguidos) {
+		if (listaSeguidos.equals("[]"))
+			return Collections.emptyList();
+		List<Usuario> seguidos = new LinkedList<>();
+		String aux = listaSeguidos.substring(1, listaSeguidos.length() - 1);
+		String[] users = aux.split(",");
+		for (String s : users) {
+			Entidad eUsuario = servPersistencia.recuperarEntidad(Integer.parseInt(s));
+			seguidos.add(entidadToUsuario(eUsuario, true));
+		}
+		return seguidos;
 	}
 
 	private Entidad usuarioToEntidad(Usuario usuario) {
 		Entidad eUsuario = new Entidad();
 		eUsuario.setNombre(USUARIO);
 
-		eUsuario.setPropiedades(new ArrayList<Propiedad>(Arrays.asList(
-				new Propiedad(USERNAME, usuario.getUsername()),
-				new Propiedad(NOMBRE, usuario.getNombre()), 
-				new Propiedad(EMAIL, usuario.getEmail()),
-				new Propiedad(PASSWORD, usuario.getPassword()),	
-				new Propiedad(FECHA_NACIMIENTO, usuario.getFechaNacimiento()),
-				new Propiedad(FOTO_PERFIL, usuario.getFotoPerfilDAO()), 
+		eUsuario.setPropiedades(new ArrayList<Propiedad>(Arrays.asList(new Propiedad(USERNAME, usuario.getUsername()),
+				new Propiedad(NOMBRE, usuario.getNombre()), new Propiedad(EMAIL, usuario.getEmail()),
+				new Propiedad(PASSWORD, usuario.getPassword()),
+				new Propiedad(FECHA_NACIMIENTO, usuario.getFechaNacimientoDAO()),
+				new Propiedad(FOTO_PERFIL, usuario.getFotoPerfilDAO()),
 				new Propiedad(PRESENTACION, usuario.getDAOPresentacion()),
-				new Propiedad(PREMIUM, usuario.isPremiumDAO()),
-				new Propiedad(SEGUIDORES, usuario.getSeguidoresDAO()),
-				new Propiedad(SEGUIDOS, usuario.getSeguidosDAO())
-				)));
+				new Propiedad(PREMIUM, usuario.isPremiumDAO()), new Propiedad(SEGUIDORES, usuario.getSeguidoresDAO()),
+				new Propiedad(SEGUIDOS, usuario.getSeguidosDAO()))));
 		return eUsuario;
 	}
 
@@ -95,7 +128,8 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 	}
 
 	/**
-	 * Permite que un Usuario modifique su perfil: password, presentacion, fotoPerfil
+	 * Permite que un Usuario modifique su perfil: password, presentacion,
+	 * fotoPerfil
 	 */
 	public void update(Usuario usuario) {
 		Entidad eUsuario = servPersistencia.recuperarEntidad(usuario.getId());
@@ -103,18 +137,24 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 		for (Propiedad prop : eUsuario.getPropiedades()) {
 			if (prop.getNombre().equals(PASSWORD)) {
 				prop.setValor(usuario.getPassword());
+			} else if (prop.getNombre().equals(PREMIUM)) {
+				prop.setValor(usuario.isPremiumDAO());
 			} else if (prop.getNombre().equals(FOTO_PERFIL)) {
 				prop.setValor(usuario.getFotoPerfilDAO());
 			} else if (prop.getNombre().equals(PRESENTACION)) {
 				prop.setValor(usuario.getDAOPresentacion());
-			} 
+			} else if (prop.getNombre().equals(SEGUIDORES)) {
+				prop.setValor(usuario.getSeguidoresDAO());
+			} else if (prop.getNombre().equals(SEGUIDOS)) {
+				prop.setValor(usuario.getSeguidosDAO());
+			}
 			servPersistencia.modificarPropiedad(prop);
 		}
 	}
 
 	public Usuario get(int id) {
 		Entidad eUsuario = servPersistencia.recuperarEntidad(id);
-		return entidadToUsuario(eUsuario);
+		return entidadToUsuario(eUsuario, false);
 	}
 
 	public List<Usuario> getAll() {

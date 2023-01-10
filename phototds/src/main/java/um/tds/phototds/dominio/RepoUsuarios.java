@@ -43,11 +43,8 @@ public enum RepoUsuarios {
 			usuariosPorLogin.put(usuario.getUsername(), usuario);
 			usuariosPorEmail.put(usuario.getEmail(), usuario);
 		}
-		for(Usuario u: listaUsuarios) {
-			u.cargarListasUsuarios();
-		}
 	}
-
+	
 	//Getters & Setters
 	public Collection<Usuario> getUsuariosRegistrados(){
 		return Collections.unmodifiableCollection(this.usuariosPorID.values());
@@ -77,9 +74,27 @@ public enum RepoUsuarios {
 		return this.usuariosPorLogin.get(username).getNombre();
 	}
 	
+	public List<Foto> getFotosPerfil(String username){
+		return usuariosPorLogin.get(username).getFotosPerfil();
+	}
+	
+	public List<Album> getAlbumesPerfil(String username){
+		return usuariosPorLogin.get(username).getAlbumesPerfil();
+	}
+	
 	//Funcionalidad
 	public Optional<Usuario> findUsuario(String username) {
 		return Optional.ofNullable(usuariosPorLogin.get(username));
+	}
+	
+	public void seguirUsuario(Usuario actualUser, String seguirUser) {
+		Usuario seguido = this.usuariosPorLogin.get(seguirUser);
+		actualUser.seguirUsuario(seguido);
+		seguido.addseguidor(actualUser);
+		
+		//Actualizar en persistencia
+		factoria.getUsuarioDAO().update(actualUser);
+		factoria.getUsuarioDAO().update(seguido);
 	}
 	
 	public List<Usuario> lookForUser(String txt){

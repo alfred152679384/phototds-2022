@@ -2,8 +2,13 @@ package um.tds.phototds.dominio;
 
 import static org.junit.Assert.assertEquals;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -14,7 +19,6 @@ import um.tds.phototds.controlador.Controlador;
 public class Usuario {
 	// Constantes
 	private static final String DEFAULT_FOTO = "resources\\unnamed_photo.png";
-	private static final String LISTA_VACIA = "[]";
 
 	// Atributos
 	private int id;
@@ -22,7 +26,8 @@ public class Usuario {
 	private String nombre;
 	private String email;
 	private String password;
-	private String fechN;
+	private Date fechaNacimiento;
+	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 	private Optional<String> fotoPerfil;
 	private Optional<String> presentacion;
 	private boolean isPremium;
@@ -40,9 +45,13 @@ public class Usuario {
 		this.nombre = nombre;
 		this.email = email;
 		this.password = cont;
-		this.fechN = fechN;
+		try {
+			this.fechaNacimiento = dateFormat.parse(fechN);
+		} catch (ParseException e) {
+			System.err.println("Fallo Fecha Nacimiento Usuario");
+		}
 		this.fotoPerfil = fotoPerfil;
-		this.presentacion = presentacion;
+		this.presentacion = presentacion;	
 		this.isPremium = false;
 		this.publicaciones = new LinkedList<Publicacion>();
 		this.seguidores = new LinkedList<Usuario>();
@@ -58,7 +67,11 @@ public class Usuario {
 		this.nombre = nombre;
 		this.email = email;
 		this.password = password;
-		this.fechN = fechN;
+		try {
+			this.fechaNacimiento = this.dateFormat.parse(fechN);
+		} catch (ParseException e) {
+			System.err.println("Fallo Fecha Nacimiento Usuario");
+		}
 		this.fotoPerfil = fotoPerfil.equals("null") ? Optional.empty() : Optional.of(fotoPerfil);
 		this.presentacion = presentacion.equals("null") ? Optional.empty() : Optional.of(presentacion);
 		this.isPremium = isPremium.equals("true") ? true : false;
@@ -106,8 +119,12 @@ public class Usuario {
 		return this.seguidos.size();
 	}
 
-	public String getFechaNacimiento() {
-		return this.fechN;
+	public String getFechaNacimientoDAO() {
+		return this.dateFormat.format(fechaNacimiento);
+	}
+	
+	public Date getFechaNacimiento() {
+		return this.fechaNacimiento;
 	}
 
 	public String getFotoPerfil() {
@@ -120,6 +137,18 @@ public class Usuario {
 		if (fotoPerfil.isPresent())
 			return fotoPerfil.get();
 		return "null";
+	}
+	
+	public boolean isPremium() {
+		return this.isPremium;
+	}
+	
+	public void setPremium(boolean premium) {
+		this.isPremium = premium;
+	}
+	
+	public List<Publicacion> getPublicaciones(){
+		return Collections.unmodifiableList(this.publicaciones);
 	}
 
 	public void setFotoPerfil(String fotoPerfil) {
@@ -153,6 +182,14 @@ public class Usuario {
 	public String getSeguidosDAO() {
 		return listToString(this.seguidos);
 	}
+	
+	public void setSeguidoresDAO(List<Usuario> seguidores) {
+		this.seguidores = new LinkedList<>(seguidores);
+	}
+	
+	public void setSeguidosDAO(List<Usuario> seguidos) {
+		this.seguidos = new LinkedList<>(seguidos);
+	}
 
 	public int getNumPublicaciones() {
 		return this.publicaciones.size();
@@ -170,14 +207,26 @@ public class Usuario {
 	public void addComentario(Publicacion f, Comentario c) {
 		publicaciones.stream().filter(p -> p.getId() == f.getId()).map(p -> p.addComentario(c));
 	}
+	
+	public void seguirUsuario(Usuario user) {
+		if(!seguidos.contains(user))
+			this.seguidos.add(user);
+	}
+	
+	public void addseguidor(Usuario user) {
+		if(!seguidores.contains(user))
+			this.seguidores.add(user);
+	}
 
 	public List<Foto> getFotosPrincipal() {
-		// Devuelvo mis fotos y las de la gente que sigo
-		List<Foto> fotos = publicaciones.stream().filter(p -> p instanceof Foto).map(p -> (Foto) p)
-				.collect(Collectors.toList());
+		List<Foto> fotos = new LinkedList<>();
+		for (Publicacion p : publicaciones) {
+			if (p instanceof Foto) {
+				fotos.add((Foto) p);
+			}
+		}
 
 		fotos.addAll(seguidos.stream().flatMap(u -> u.getFotosPerfil().stream()).collect(Collectors.toList()));
-
 		fotos.sort(null);// Ordena por el comparable
 		if (fotos.size() > 20)
 			return fotos.subList(0, 20);
@@ -189,11 +238,15 @@ public class Usuario {
 		return publicaciones.stream().filter(p -> p instanceof Foto).map(p -> (Foto) p).collect(Collectors.toList());
 	}
 
+	public List<Album> getAlbumesPerfil() {
+		return publicaciones.stream().filter(p -> p instanceof Album).map(p -> (Album) p).collect(Collectors.toList());
+	}
+
 	private String listToString(LinkedList<Usuario> list) {
 		String s = "[";
 		for (int i = 0; i < list.size(); i++) {
 			if (i == 0)
-				s += list.get(i).getUsername();
+				s += Integer.toString(list.get(i).getId());
 			else
 				s += "," + list.get(i).getUsername();
 		}
@@ -207,45 +260,4 @@ public class Usuario {
 		else
 			this.publicaciones.addAll(p);
 	}
-
-	/**
-	 * Cuando se cargan los objetos Usuario no podemos crear las listas de
-	 * seguidores y seguidos porque puede que algunos usuarios todavía no estén
-	 * creados, por lo que los creamos cuando se llama a esta función
-	 */
-	public void cargarListasUsuarios() {
-		cargarSeguidores();
-		cargarSeguidos();
-	}
-
-	private void cargarSeguidores() {
-		if (this.seguidoresString.get().equals(LISTA_VACIA))
-			return;
-		String n = seguidoresString.get().substring(1, seguidoresString.get().length() - 1);
-		String[] s = n.split(",");
-		for (int i = 0; i < s.length; i++) {
-			Optional<Usuario> u = Controlador.INSTANCE.findUsuario(s[i]);
-			if (u.isPresent()) {
-				this.seguidores.add(u.get());
-			} else {
-				System.err.println("Usuario " + u.get().getUsername() + ": No existe");
-			}
-		}
-	}
-
-	private void cargarSeguidos() {
-		if (this.seguidosString.get().equals(LISTA_VACIA))
-			return;
-		String n = seguidosString.get().substring(1, seguidosString.get().length() - 1);
-		String[] s = n.split(",");
-		for (int i = 0; i < s.length; i++) {
-			Optional<Usuario> u = Controlador.INSTANCE.findUsuario(s[i]);
-			if (u.isPresent()) {
-				this.seguidores.add(u.get());
-			} else {
-				System.err.println("Usuario " + u.get().getUsername() + ": No existe");
-			}
-		}
-	}
-
 }

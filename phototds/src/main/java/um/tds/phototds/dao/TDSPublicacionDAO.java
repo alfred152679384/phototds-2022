@@ -22,6 +22,8 @@ import um.tds.phototds.dominio.Publicacion;
 public final class TDSPublicacionDAO implements PublicacionDAO {
 	private static final String FOTO = "Foto";
 	private static final String ALBUM = "Album";
+	private static final String FOTO_ALBUM = "FotoAlbum";
+	private static final String ALBUM_ID = "AlbumId";
 	private static final String USUARIO = "usuario";
 	private static final String TITULO = "titulo";
 	private static final String FECHA = "fecha";
@@ -67,7 +69,7 @@ public final class TDSPublicacionDAO implements PublicacionDAO {
 		String fecha = servPersistencia.recuperarPropiedadEntidad(eAlbum, FECHA);
 		String desc = servPersistencia.recuperarPropiedadEntidad(eAlbum, DESCRIPCION);
 		String meGustas = servPersistencia.recuperarPropiedadEntidad(eAlbum, ME_GUSTAS);
-		String hashtags= servPersistencia.recuperarPropiedadEntidad(eAlbum, HASHTAGS);
+		String hashtags = servPersistencia.recuperarPropiedadEntidad(eAlbum, HASHTAGS);
 		String comentarios = servPersistencia.recuperarPropiedadEntidad(eAlbum, COMENTARIOS);
 		String listaFotos = servPersistencia.recuperarPropiedadEntidad(eAlbum, LISTA_FOTOS);
 
@@ -82,33 +84,50 @@ public final class TDSPublicacionDAO implements PublicacionDAO {
 		eFoto.setNombre(FOTO);
 
 		eFoto.setPropiedades(new ArrayList<Propiedad>(
-				Arrays.asList(
-						new Propiedad(USUARIO, f.getUsuarioDAO()),
-						new Propiedad(TITULO, f.getTitulo()), 
-						new Propiedad(FECHA, f.getFechaDAO()),
-						new Propiedad(DESCRIPCION, f.getDescripcion()), 
-						new Propiedad(ME_GUSTAS, f.getMegustasDAO()),
-						new Propiedad(HASHTAGS, f.getHashtagsDAO()),
-						new Propiedad(COMENTARIOS, f.getComentariosDAO()), 
-						new Propiedad(PATH, f.getPath()))));
+				Arrays.asList(new Propiedad(USUARIO, f.getUsuarioDAO()), new Propiedad(TITULO, f.getTitulo()),
+						new Propiedad(FECHA, f.getFechaDAO()), new Propiedad(DESCRIPCION, f.getDescripcion()),
+						new Propiedad(ME_GUSTAS, f.getMegustasDAO()), new Propiedad(HASHTAGS, f.getHashtagsDAO()),
+						new Propiedad(COMENTARIOS, f.getComentariosDAO()), new Propiedad(PATH, f.getPath()))));
+		return eFoto;
+	}
+
+	private Entidad fotoAlbumToEntidad(Foto f, int idAlbum) {
+		Entidad eFoto = new Entidad();
+		eFoto.setNombre(FOTO_ALBUM);
+
+		eFoto.setPropiedades(new ArrayList<Propiedad>(Arrays.asList(new Propiedad(ALBUM_ID, Integer.toString(idAlbum)),
+				new Propiedad(USUARIO, f.getUsuarioDAO()), new Propiedad(TITULO, f.getTitulo()),
+				new Propiedad(FECHA, f.getFechaDAO()), new Propiedad(DESCRIPCION, f.getDescripcion()),
+				new Propiedad(ME_GUSTAS, f.getMegustasDAO()), new Propiedad(HASHTAGS, f.getHashtagsDAO()),
+				new Propiedad(COMENTARIOS, f.getComentariosDAO()), new Propiedad(PATH, f.getPath()))));
 		return eFoto;
 	}
 
 	private Entidad albumToEntidad(Album a) {
 		Entidad eAlbum = new Entidad();
-		eAlbum.setNombre(FOTO);
+		eAlbum.setNombre(ALBUM);
 
-		eAlbum.setPropiedades(new ArrayList<Propiedad>(Arrays.asList(
-				new Propiedad(USUARIO, a.getUsuarioDAO()),
-				new Propiedad(TITULO, a.getTitulo()),
-				new Propiedad(FECHA, a.getFechaDAO()),
-				new Propiedad(DESCRIPCION, a.getDescripcion()),
-				new Propiedad(ME_GUSTAS, a.getMegustasDAO()),
-				new Propiedad(HASHTAGS, a.getHashtagsDAO()),
-				new Propiedad(COMENTARIOS, a.getComentariosDAO())
-//	TODO			new Propiedad(LISTA_FOTOS, a.getListaFotosString())
-				)));
+		eAlbum.setPropiedades(new ArrayList<Propiedad>(Arrays.asList(new Propiedad(USUARIO, a.getUsuarioDAO()),
+				new Propiedad(TITULO, a.getTitulo()), new Propiedad(FECHA, a.getFechaDAO()),
+				new Propiedad(DESCRIPCION, a.getDescripcion()), new Propiedad(ME_GUSTAS, a.getMegustasDAO()),
+				new Propiedad(HASHTAGS, a.getHashtagsDAO()), new Propiedad(COMENTARIOS, a.getComentariosDAO()))));
 		return eAlbum;
+	}
+
+	private void registrarFotosAlbum(Album a) {
+		for (Foto f : a.getListaFotos()) {
+			Entidad eFoto = fotoAlbumToEntidad(f, a.getId());
+			eFoto = servPersistencia.registrarEntidad(eFoto);
+			f.setId(eFoto.getId());
+		}
+	}
+
+	public void addFotosAlbum(int idAlbum, List<Foto> fList) {
+		for(Foto f : fList) {
+			Entidad eFoto = fotoAlbumToEntidad(f, idAlbum);
+			eFoto = servPersistencia.registrarEntidad(eFoto);
+			f.setId(eFoto.getId());
+		}
 	}
 
 	public void create(Publicacion p) {
@@ -118,9 +137,11 @@ public final class TDSPublicacionDAO implements PublicacionDAO {
 			p.setId(eFoto.getId());
 			return;
 		}
+		// Album
 		Entidad eAlbum = this.albumToEntidad((Album) p);
 		eAlbum = servPersistencia.registrarEntidad(eAlbum);
 		p.setId(eAlbum.getId());
+		registrarFotosAlbum((Album) p);
 	}
 
 	public boolean delete(Publicacion p) {
@@ -137,9 +158,9 @@ public final class TDSPublicacionDAO implements PublicacionDAO {
 				p.setValor(pb.getTitulo());
 			} else if (p.getNombre().equals(DESCRIPCION)) {
 				p.setValor(pb.getDescripcion());
-			} else if(p.getNombre().equals(ME_GUSTAS)) {
+			} else if (p.getNombre().equals(ME_GUSTAS)) {
 				p.setValor(pb.getMegustasDAO());
-			} else if(p.getNombre().equals(COMENTARIOS)) {
+			} else if (p.getNombre().equals(COMENTARIOS)) {
 				p.setValor(pb.getComentariosDAO());
 			}
 			servPersistencia.modificarPropiedad(p);
@@ -158,28 +179,19 @@ public final class TDSPublicacionDAO implements PublicacionDAO {
 		List<Entidad> entidades = servPersistencia.recuperarEntidades(FOTO);
 		entidades.addAll(servPersistencia.recuperarEntidades(ALBUM));
 		List<Publicacion> publicaciones = new LinkedList<Publicacion>();
-
 		for (Entidad e : entidades) {
-			publicaciones.add(get(e.getId()));
+			Publicacion p = get(e.getId());
+			if (e.getNombre().equals(ALBUM)) {
+				Album a = (Album) p;
+				// Recorrer fotosAlbumes añadir al album si coincide el idAlbum
+				for (Entidad fe : servPersistencia.recuperarEntidades(FOTO_ALBUM)) {// TODO cambiar a stream
+					if (servPersistencia.recuperarPropiedadEntidad(fe, ALBUM_ID).equals(Integer.toString(e.getId()))) {
+						a.addFotoDAO((Foto) get(fe.getId()));
+					}
+				}
+			}
+			publicaciones.add(p);
 		}
 		return publicaciones;
 	}
-
-//	public List<Foto> getAllFotos(){
-//		List<Entidad> entidades = servPersistencia.recuperarEntidades(FOTO);
-//		List<Foto> fotos = new LinkedList<Foto>();
-//		for(Entidad e : entidades) {
-//			fotos.add((Foto)get(e.getId()));
-//		}
-//		return fotos;
-//	}
-//	
-//	public List<Album> getAllAlbumes(){
-//		List<Entidad> entidades = servPersistencia.recuperarEntidades(ALBUM);
-//		List<Album> albumes = new LinkedList<Album>();
-//		for(Entidad e: entidades) {
-//			albumes.add((Album)get(e.getId()));
-//		}
-//		return albumes;
-//	}
 }
