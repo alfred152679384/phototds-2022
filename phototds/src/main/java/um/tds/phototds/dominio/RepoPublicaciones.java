@@ -87,7 +87,7 @@ public enum RepoPublicaciones {
 
 	public void cargarPublicacionesUsuarios() {
 		// Cargamos las publicaciones en los usuarios
-		LinkedList<Usuario> users = new LinkedList<>(Controlador.INSTANCE.getUsuariosRegistrados());
+		List<Usuario> users = RepoUsuarios.INSTANCE.getUsuariosRegistrados();
 		for (Usuario u : users) {
 			List<Publicacion> publish = this.publicacionesPorId.values().stream()
 					.filter(p -> p.getUsuario().getUsername().equals(u.getUsername())).collect(Collectors.toList());
@@ -112,6 +112,17 @@ public enum RepoPublicaciones {
 
 	public Optional<Publicacion> findPublicacion(int id) {
 		return Optional.ofNullable(publicacionesPorId.get(id));
+	}
+	
+	public void deletePublicacion(int id) {
+		Publicacion p = publicacionesPorId.get(id);
+		p.getUsuario().removePublicacion(id);
+		publicacionesPorId.remove(id);
+		List<String> hashtags;
+		if(!(hashtags = p.getHashtags()).isEmpty()) {
+			hashtags.stream().forEach(h -> publicacionesPorHashtag.remove(h));
+		}
+		factoria.getPublicacionDAO().delete(p);
 	}
 
 	public void addPublicacion(Publicacion p) {

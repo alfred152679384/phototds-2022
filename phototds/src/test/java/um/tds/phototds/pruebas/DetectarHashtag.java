@@ -9,7 +9,6 @@ public class DetectarHashtag {
 		String aux = s;
 		String hashtag = "";
 		int i, f = 0;
-		System.out.println("text=" + s + ";");
 		while ((i = aux.indexOf("#")) != -1) {
 			aux = aux.substring(i);
 			i = 0;
@@ -23,9 +22,4 @@ public class DetectarHashtag {
 		return list;
 	}
 
-	public static void main(String[] args) {
-		System.out.println(detectarHashtags("hola que tal #metal #wss son los #generos"
-				+ " mas escuchados en #spotify"));
-
-	}
 }

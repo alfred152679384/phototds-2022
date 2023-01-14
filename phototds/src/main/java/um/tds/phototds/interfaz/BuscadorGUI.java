@@ -66,7 +66,7 @@ public class BuscadorGUI extends JDialog {
 		panelLista.setLayout(new BorderLayout(0, 0));
 
 		try {
-			if (list.get(0).getMode() == ComunicacionConGUI.MODE_USUARIOS)
+			if (list.get(0).getMode() == ComunicacionConGUI.MODE_BUSQ_USUARIOS)
 				cargarListaUsuarios(panelLista);
 			else
 				cargarListaHashtags(panelLista);

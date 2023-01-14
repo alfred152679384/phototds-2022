@@ -14,9 +14,9 @@ public class PruebasTontas {
 
 	public static void main(String[] args) {
 		List<ComunicacionConGUI> c = new LinkedList<>();
-		c.add(new ComunicacionConGUI(0, "a", "foto1", LocalDateTime.now(), 0, "", "" ));
-		c.add(new ComunicacionConGUI(0, "a", "foto2", LocalDateTime.now(), 0, "", "" ));
-		c.add(new ComunicacionConGUI(0, "a", "foto3", LocalDateTime.now(), 0, "", "" ));
+//		c.add(new ComunicacionConGUI(0, "a", "foto1", LocalDateTime.now(), 0, "", "" ));
+//		c.add(new ComunicacionConGUI(0, "a", "foto2", LocalDateTime.now(), 0, "", "" ));
+//		c.add(new ComunicacionConGUI(0, "a", "foto3", LocalDateTime.now(), 0, "", "" ));
 		
 		Album a = new Album(
 				new Usuario("a", "a", "a", "a", "1111-11-11",Optional.empty(), Optional.empty()),

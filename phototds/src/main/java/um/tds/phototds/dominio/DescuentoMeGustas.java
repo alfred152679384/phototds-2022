@@ -15,7 +15,7 @@ public class DescuentoMeGustas implements Descuento {
 
 	//Función de la interfaz
 	@Override
-	public double getDescuento() {
+	public double aplicarDescuento() {
 		int meGustasUser = usuario.getPublicaciones().stream()
 				.mapToInt(p -> p.getMeGustas())
 				.sum();

@@ -7,6 +7,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import um.tds.phototds.controlador.ComGUIBuilder;
 import um.tds.phototds.controlador.ComunicacionConGUI;
 
 import javax.swing.BoxLayout;
@@ -63,6 +64,7 @@ public class AddFotoGUI extends JDialog {// Añadir fotos por drag and drop o de
 		if (mode == MODE_ALBUM)
 			this.setTitle("Añadir Album");
 		this.owner = owner;
+		this.comList = new LinkedList<>();
 		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setResizable(false);
 		setBounds(100, 100, 400, 300);
@@ -103,8 +105,11 @@ public class AddFotoGUI extends JDialog {// Añadir fotos por drag and drop o de
 					ShowImageGUI w = new ShowImageGUI(this.owner, f, ShowImageGUI.MODE_ALBUM);
 					w.setVisible(true);
 					comList = new LinkedList<>();
-					comList.add(new ComunicacionConGUI(f.getAbsolutePath(), w.getTitulo(), w.getDescripcion(),
-							ComunicacionConGUI.MODE_ALBUM));
+					ComGUIBuilder b = new ComGUIBuilder();
+					b.buildPathFoto(f.getAbsolutePath());
+					b.buildTitulo(w.getTitulo());
+					b.buildDescripcion(w.getDescripcion());
+					comList.add(b.getResult());
 				}
 				owner.dispose();
 			}
@@ -130,12 +135,14 @@ public class AddFotoGUI extends JDialog {// Añadir fotos por drag and drop o de
 						w.mostrarVentana();
 						owner.dispose();
 					} else {
-						comList = new LinkedList<>();
 						for (File f : droppedFiles) {
 							ShowImageGUI w = new ShowImageGUI(owner, f, ShowImageGUI.MODE_ALBUM);
 							w.setVisible(true);
-							comList.add(new ComunicacionConGUI(f.getAbsolutePath(), w.getTitulo(), w.getDescripcion(),
-									ComunicacionConGUI.MODE_ALBUM));
+							ComGUIBuilder b = new ComGUIBuilder();
+							b.buildPathFoto(f.getAbsolutePath());
+							b.buildTitulo(w.getTitulo());
+							b.buildDescripcion(w.getDescripcion());
+							comList.add(b.getResult());
 							AddFotoGUI.this.dispose();
 						}
 					}

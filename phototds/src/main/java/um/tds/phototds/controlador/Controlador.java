@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -50,8 +51,15 @@ public enum Controlador {
 		List<ComunicacionConGUI> listCom = new LinkedList<>();
 		List<Foto> listFoto = usuario.getFotosPrincipal();
 		for (Foto f : listFoto) {
-			listCom.add(new ComunicacionConGUI(f.getId(), f.getUsuario().getUsername(), f.getPath(), f.getFecha(),
-					f.getMeGustas(), f.getTitulo(), f.getDescripcion()));
+			ComGUIBuilder b = new ComGUIBuilder();
+			b.buildIdPublicacion(f.getId());
+			b.buildUsername(f.getUsuario().getUsername());
+			b.buildPathFoto(f.getPath());
+			b.buildFecha(f.getFecha());
+			b.buildMeGustas(f.getMeGustas());
+			b.buildTitulo(f.getTitulo());
+			b.buildDescripcion(f.getDescripcion());
+			listCom.add(b.getResult());
 		}
 		return listCom;
 	}
@@ -60,7 +68,11 @@ public enum Controlador {
 		List<Foto> listFoto = RepoUsuarios.INSTANCE.getFotosPerfil(username);
 		List<ComunicacionConGUI> listCom = new LinkedList<>();
 		for (Foto f : listFoto) {
-			listCom.add(new ComunicacionConGUI(f.getId(), f.getPath()));
+			ComGUIBuilder b = new ComGUIBuilder();
+			b.buildUsername(username);
+			b.buildIdPublicacion(f.getId());
+			b.buildPathFoto(f.getPath());
+			listCom.add(b.getResult());
 		}
 		return listCom;
 	}
@@ -71,10 +83,18 @@ public enum Controlador {
 		for (Album a : listAlbum) {
 			List<ComunicacionConGUI> comListFoto = new LinkedList<>();
 			for (Foto f : a.getListaFotos()) {
-				ComunicacionConGUI c = new ComunicacionConGUI(f.getId(), f.getPath());
-				comListFoto.add(c);
+				ComGUIBuilder b = new ComGUIBuilder();
+				b.buildIdPublicacion(f.getId());
+				b.buildPathFoto(f.getPath());
+				comListFoto.add(b.getResult());
 			}
-			comListAlbum.add(new ComunicacionConGUI(a.getId(), a.getTitulo(), a.getDescripcion(), comListFoto));
+			ComGUIBuilder c = new ComGUIBuilder();
+			c.buildIdPublicacion(a.getId());
+			c.buildUsername(username);
+			c.buildTitulo(a.getTitulo());
+			c.buildDescripcion(a.getDescripcion());
+			c.buildFotosAlbumes(comListFoto);
+			comListAlbum.add(c.getResult());
 		}
 		return comListAlbum;
 	}
@@ -125,19 +145,27 @@ public enum Controlador {
 	// Funcionalidad
 	public boolean loginUser(String username, String p) {
 		Optional<Usuario> aux = RepoUsuarios.INSTANCE.findUsuario(username);
-		if (aux.isPresent() && aux.get().getPassword().equals(p)) {
+		if (aux.isPresent() && aux.get().getPassword().equals(p)
+				|| aux.isPresent() && aux.get().getPassword().equals(p)) {
 			this.usuario = aux.get();
 			RepoPublicaciones.INSTANCE.cargarPublicacionesUsuarios();
-			return true;
-		}
-		// Probamos con el email
-		aux = RepoUsuarios.INSTANCE.findUsuarioEmail(username);
-		if (aux.isPresent() && aux.get().getPassword().equals(p)) {
-			this.usuario = aux.get();
-			RepoPublicaciones.INSTANCE.cargarPublicacionesUsuarios();
+			RepoUsuarios.INSTANCE.cargarNotificaciones();
 			return true;
 		}
 		return false;
+	}
+	
+	public List<ComunicacionConGUI> getNotificacionesUsuarioActual(){
+		List<ComunicacionConGUI> comList = new LinkedList<>();
+		List<Notificacion> notifs = usuario.getNotificaciones();
+		for(Notificacion n : notifs) {
+			ComGUIBuilder b = new ComGUIBuilder();
+			b.buildUsername(n.getPublicacion().getUsuario().getUsername());
+			b.buildTitulo(n.getPublicacion().getTitulo());
+			b.buildFecha(n.getFechaPublicacion());
+			comList.add(b.getResult());
+		}
+		return comList;
 	}
 
 	public boolean registerUser(String username, String nombre, String email, String cont, String fechN,
@@ -176,17 +204,17 @@ public enum Controlador {
 		PublicacionDAO daoFoto = factoria.getPublicacionDAO();
 		daoFoto.create(p);
 		RepoPublicaciones.INSTANCE.addPublicacion(p);
-		usuario.addPublicacion(p);
+		RepoUsuarios.INSTANCE.addPublicacion(usuario, p);
+		factoria.getUsuarioDAO().update(usuario);
 		return true;
 	}
-
+	
 	public void addAlbum(String titulo, String descripcion, List<ComunicacionConGUI> comList) {
-		Album a = new Album(usuario, titulo, descripcion, comList);
-		Publicacion p = (Publicacion) a;
+		Publicacion p = new Album(usuario, titulo, descripcion, comList);
 		PublicacionDAO daoAlbum = factoria.getPublicacionDAO();
 		daoAlbum.create(p);
 		RepoPublicaciones.INSTANCE.addPublicacion(p);
-		usuario.addPublicacion(p);
+		RepoUsuarios.INSTANCE.addPublicacion(usuario, p);
 	}
 
 	public void addFotosToAlbum(int idAlbum, List<ComunicacionConGUI> comList) {
@@ -217,27 +245,34 @@ public enum Controlador {
 	public void escribirComentario(int idPubli, String coment) {
 		RepoPublicaciones.INSTANCE.addComentario(idPubli, coment);
 	}
-	
+
+	public List<ComunicacionConGUI> getTopMeGustasUsuarioActual() {
+		List<ComunicacionConGUI> comList = new LinkedList<>();
+		List<Foto> fotos = usuario.getFotosPerfil().stream().sorted((o1, o2) -> Integer.compare(o2.getMeGustas(), o1.getMeGustas()))
+				.limit(10).collect(Collectors.toList());
+
+		ComGUIBuilder b = new ComGUIBuilder();
+		for(Foto f : fotos) {
+			b.buildPathFoto(f.getPath());
+			b.buildMeGustas(f.getMeGustas());
+			comList.add(b.getResult());
+		}
+		
+//				forEach(f -> comList.add(new ComunicacionConGUI(f.getPath(), f.getMeGustas(), 0)));
+		return comList;
+	}
+
 	public void setUsuarioActualPremium() {
 		usuario.setPremium(true);
 		factoria.getUsuarioDAO().update(usuario);
 	}
 
+	public void deletePublicacion(int idPublicacion) {
+		RepoPublicaciones.INSTANCE.deletePublicacion(idPublicacion);
+	}
+
 	public double comprobarDescuento(int mode) {
-		double precio = 5;// Precio: 5€
-		switch (mode) {
-		case 0:
-			DescuentoEdad d = new DescuentoEdad(usuario);
-			return precio * (1 - d.getDescuento());
-		
-		case 1:
-			DescuentoMeGustas d2 = new DescuentoMeGustas(usuario);
-			return precio * (1 - d2.getDescuento());
-		
-		default:
-		}
-		
-		return precio;
+		return usuario.aplicarDescuento(mode);
 	}
 
 	public List<ComunicacionConGUI> lookFor(String txt) {
@@ -247,8 +282,12 @@ public enum Controlador {
 			if (l.isEmpty())
 				return Collections.emptyList();
 			for (Publicacion p : l) {
-				r.add(new ComunicacionConGUI(p.getHashtagContaining(txt), p.getUsuario().getNumSeguidores(),
-						p.getUsuario().getUsername()));
+				ComGUIBuilder b = new ComGUIBuilder();
+				b.buildNumSeguidoresUsuario(p.getUsuario().getNumSeguidores());
+				b.buildUsername(p.getUsuario().getUsername());
+				b.buildHashtag(p.getHashtagContaining(txt));
+				b.buildMode(ComunicacionConGUI.MODE_BUSQ_HASHTAGS);
+				r.add(b.getResult());
 			}
 			return r;
 		}
@@ -257,7 +296,12 @@ public enum Controlador {
 			return Collections.emptyList();
 		users.remove(this.usuario);
 		for (Usuario u : users) {
-			r.add(new ComunicacionConGUI(u.getFotoPerfil(), u.getNombre(), u.getUsername()));
+			ComGUIBuilder b = new ComGUIBuilder();
+			b.buildPathFoto(u.getFotoPerfil());
+			b.buildNombreUsuario(u.getNombre());
+			b.buildUsername(u.getUsername());
+			b.buildMode(ComunicacionConGUI.MODE_BUSQ_USUARIOS);
+			r.add(b.getResult());
 		}
 		return r;
 	}

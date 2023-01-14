@@ -128,6 +128,7 @@ public class ShowImageGUI extends JDialog {
 
 		JButton btnCancelar = new JButton("Cancelar");
 		btnCancelar.addActionListener(e -> {
+			textTitulo = new JTextArea();
 			this.textTitulo.setText("");
 			this.textDesc.setText("");
 			this.ok = false;

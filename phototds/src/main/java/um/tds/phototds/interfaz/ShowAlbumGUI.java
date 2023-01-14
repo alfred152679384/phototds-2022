@@ -45,7 +45,7 @@ public class ShowAlbumGUI extends JDialog {
 	/**
 	 * Create the dialog.
 	 */
-	public ShowAlbumGUI(JFrame owner, ComunicacionConGUI albumes, String username) {
+	public ShowAlbumGUI(JFrame owner, ComunicacionConGUI album) {
 		super(owner, "Mostrar Album", true);
 		this.setResizable(false);
 		this.owner = owner;
@@ -53,7 +53,8 @@ public class ShowAlbumGUI extends JDialog {
 		setBounds(400, 100, 450, 550);
 		getContentPane().setLayout(new BorderLayout());
 		getContentPane().setBackground(Color.white);
-		this.album = albumes;
+		this.propietarioAlbum = album.getUsername();
+		this.album = album;
 
 		panelCentral.setLayout(new BorderLayout(0, 0));
 		getContentPane().add(panelCentral, BorderLayout.CENTER);

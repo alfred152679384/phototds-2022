@@ -26,6 +26,7 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Image;
+import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -68,6 +69,8 @@ public class PrincipalGUI extends JFrame {
 	private static final int ENTRADA_FOTO_PERFIL_SIZE = 50;
 	private static final int CELL_SIZE = FRAME_SIZE / 3 - 12;
 	private static final int ALBUM_CELL_SIZE = FRAME_SIZE / 4 - 8;
+	private static final int MODE_FOTO = 0;
+	private static final int MODE_ALBUM = 1;
 
 	private static final String LUPA_PATH = "resources\\lupa.png";
 	private static final String OPTIONS_PATH = "resources\\options.png";
@@ -83,9 +86,9 @@ public class PrincipalGUI extends JFrame {
 	private JPanel panelCentral;
 	private JPanel panelFotosPerfil;
 	private JPanel panelInfoUser;
-//	private Optional<JPanel> panelFotosCentral;//TODO
-//	private Optional<JPanel> panelFotosPerfil;
-//	private Optional<JPanel> panelAlbumesPerfil;
+	// private Optional<JPanel> panelFotosCentral;//TODO
+	// private Optional<JPanel> panelFotosPerfil;
+	// private Optional<JPanel> panelAlbumesPerfil;
 
 	/**
 	 * Create the frame. Constructor por defecto muestra la pantalla principal
@@ -93,9 +96,9 @@ public class PrincipalGUI extends JFrame {
 	public PrincipalGUI() {
 		this.mostrarPerfil = false;
 		this.searchingUser = false;
-//		this.panelFotosPerfil = Optional.empty();
-//		this.panelFotosCentral = Optional.empty();
-//		this.panelAlbumesPerfil = Optional.empty();
+		// this.panelFotosPerfil = Optional.empty();
+		// this.panelFotosCentral = Optional.empty();
+		// this.panelAlbumesPerfil = Optional.empty();
 		initialize();
 	}
 
@@ -103,16 +106,29 @@ public class PrincipalGUI extends JFrame {
 	public PrincipalGUI(boolean vistaPerfil) {
 		this.mostrarPerfil = vistaPerfil;
 		this.searchingUser = false;
-//		this.panelFotosPerfil = Optional.empty();
-//		this.panelFotosCentral = Optional.empty();
-//		this.panelAlbumesPerfil = Optional.empty();
+		// this.panelFotosPerfil = Optional.empty();
+		// this.panelFotosCentral = Optional.empty();
+		// this.panelAlbumesPerfil = Optional.empty();
 		initialize();
+		cargarNotificaciones();
 	}
 
 	public void mostrarVentana() {
 		framePrincipal.setResizable(false);
 		framePrincipal.setLocationRelativeTo(null);
 		framePrincipal.setVisible(true);
+		cargarNotificaciones();
+	}
+
+	private void cargarNotificaciones() {
+		List<ComunicacionConGUI> notifs = Controlador.INSTANCE.getNotificacionesUsuarioActual();
+		for (ComunicacionConGUI n : notifs) {
+					+ n.getTitulo());
+			JOptionPane.showMessageDialog(framePrincipal,
+					n.getFecha().format(Controlador.HUMAN_FORMATTER) + ":\nEl usuario " + n.getUsername()
+							+ " ha realizado una publicación con título: " + n.getTitulo(),
+					"NOTIFICACION", JOptionPane.INFORMATION_MESSAGE);
+		}
 	}
 
 	private void initialize() {
@@ -239,6 +255,7 @@ public class PrincipalGUI extends JFrame {
 			popOptions.add(itemExcel);
 
 			JMenuItem itemTopMG = new JMenuItem("Top Me gusta");
+			addManejadorItemTopMG(itemTopMG);
 			popOptions.add(itemTopMG);
 		}
 		// Añadimos el menu al boton
@@ -247,6 +264,26 @@ public class PrincipalGUI extends JFrame {
 				popOptions.show(e.getComponent(), e.getX(), e.getY());
 			}
 		});
+	}
+
+	private void addManejadorItemTopMG(JMenuItem item) {
+		item.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				if (!isUsuarioPremium())
+					return;
+				TopMgGUI w = new TopMgGUI(framePrincipal);
+				w.setVisible(true);
+			}
+		});
+	}
+
+	private boolean isUsuarioPremium() {
+		boolean isPremium = Controlador.INSTANCE.isUsuarioActualPremium();
+		if (isPremium)
+			return true;
+		JOptionPane.showMessageDialog(framePrincipal, "Usted no es un usuario premium", "No es Premium",
+				JOptionPane.ERROR_MESSAGE);
+		return false;
 	}
 
 	private void addManejadorItemPremium(JMenuItem itemPremium) {
@@ -261,14 +298,17 @@ public class PrincipalGUI extends JFrame {
 				int response = JOptionPane.showOptionDialog(framePrincipal,
 						"Escoge el tipo de descuento que desea aplicar", "Descuento Premium",
 						JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[2]);
+				if (response == -1) {
+					return;
+				}
 				double precio = Controlador.INSTANCE.comprobarDescuento(response);
-				
-				String[] yesNo = {"Yes", "No"};
+
+				String[] yesNo = { "Yes", "No" };
 				int havePayed = JOptionPane.showOptionDialog(framePrincipal,
-						"Precio para premium: " + precio + "€. ¿Desea realizar el pago?", "Pagar", 
+						"Precio para premium: " + precio + "€. ¿Desea realizar el pago?", "Pagar",
 						JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, yesNo, yesNo[0]);
-				
-				if(havePayed == 0) {
+
+				if (havePayed == 0) {
 					Controlador.INSTANCE.setUsuarioActualPremium();
 				}
 			}
@@ -317,7 +357,7 @@ public class PrincipalGUI extends JFrame {
 		return btnImg;
 	}
 
-	private JLabel crearLabelFoto(String path, int width, int height) throws IOException {
+	public static JLabel crearLabelFoto(String path, int width, int height) throws IOException {
 		// Cargamos foto original
 		BufferedImage foto;
 		File fi = new File(path);
@@ -351,10 +391,10 @@ public class PrincipalGUI extends JFrame {
 		panelCentral.setLayout(new BoxLayout(panelCentral, BoxLayout.Y_AXIS));
 		// Cargo las fotos en el panelListaFotos
 		JPanel panelListaFotos;
-//		if (this.panelFotosCentral.isEmpty())
+		// if (this.panelFotosCentral.isEmpty())
 		panelListaFotos = cargarFotos();
-//		else
-//			panelListaFotos = this.panelFotosCentral.get();
+		// else
+		// panelListaFotos = this.panelFotosCentral.get();
 
 		// Añado el scrollbar
 		JScrollPane scrollListaFotos = new JScrollPane(panelListaFotos);
@@ -493,11 +533,12 @@ public class PrincipalGUI extends JFrame {
 
 	private void cargarAlbumesPerfil(String username) {
 		// Cargamos albumes rápidamente
-//		if (Controlador.INSTANCE.getUsuarioActual().equals(username) && this.panelAlbumesPerfil.isPresent()) {
-//			JPanel panelAlbumesGuardados = this.panelFotosPerfil.get();
-//			panelFotos.add(panelAlbumesGuardados, BorderLayout.CENTER);
-//			return;
-//		}
+		// if (Controlador.INSTANCE.getUsuarioActual().equals(username) &&
+		// this.panelAlbumesPerfil.isPresent()) {
+		// JPanel panelAlbumesGuardados = this.panelFotosPerfil.get();
+		// panelFotos.add(panelAlbumesGuardados, BorderLayout.CENTER);
+		// return;
+		// }
 
 		// Si no estaba cargado
 		List<ComunicacionConGUI> albumes = Controlador.INSTANCE.getAlbumesPerfil(username);
@@ -518,15 +559,16 @@ public class PrincipalGUI extends JFrame {
 		lista.setVisibleRowCount(-1);
 		lista.setFixedCellWidth(ALBUM_CELL_SIZE);
 		lista.setFixedCellHeight(ALBUM_CELL_SIZE);
-		crearManejadorListaFotosAlbumes(lista, albumes, username);
+		crearManejadorListaPerfil(lista, albumes, username, MODE_ALBUM);
 
 		JScrollPane scrollAlbumes = new JScrollPane(lista);
 		scrollAlbumes.getVerticalScrollBar().setUnitIncrement(DEFAULT_SCROLL);
 		scrollAlbumes.getVerticalScrollBar().setValue(0);
 		panelFotosPerfil.add(scrollAlbumes, BorderLayout.CENTER);
-//		if (Controlador.INSTANCE.getUsuarioActual().equals(username) && this.panelAlbumesPerfil.isEmpty()) {
-//			this.panelFotosPerfil = Optional.of(panelFotos);
-//		}
+		// if (Controlador.INSTANCE.getUsuarioActual().equals(username) &&
+		// this.panelAlbumesPerfil.isEmpty()) {
+		// this.panelFotosPerfil = Optional.of(panelFotos);
+		// }
 	}
 
 	private void addManejadorBtnSeguirUsuario(JButton btn, String username) {
@@ -543,7 +585,7 @@ public class PrincipalGUI extends JFrame {
 			RegisterGUI w = new RegisterGUI(framePrincipal, RegisterGUI.MODE_UPDATE);
 			w.setVisible(true);
 			if (w.getOk()) {
-//				this.panelFotosCentral = Optional.empty();
+				// this.panelFotosCentral = Optional.empty();
 				panelCentral.removeAll();
 				cargarPerfilUsuario(Controlador.INSTANCE.getUsuarioActual());
 				recargarVentana();
@@ -553,11 +595,12 @@ public class PrincipalGUI extends JFrame {
 
 	private void cargarFotosPerfil(String username) {
 		// Carga rápida
-//		if (Controlador.INSTANCE.getUsuarioActual().equals(username) && this.panelFotosPerfil.isPresent()) {
-//			JPanel panelFotosGuardadas = this.panelFotosPerfil.get();
-//			panelCentral.add(panelFotosGuardadas, BorderLayout.CENTER);
-//			return;
-//		}
+		// if (Controlador.INSTANCE.getUsuarioActual().equals(username) &&
+		// this.panelFotosPerfil.isPresent()) {
+		// JPanel panelFotosGuardadas = this.panelFotosPerfil.get();
+		// panelCentral.add(panelFotosGuardadas, BorderLayout.CENTER);
+		// return;
+		// }
 
 		List<ComunicacionConGUI> aux = Controlador.INSTANCE.getFotosPerfil(username);
 		ArrayList<ComunicacionConGUI> fotos = new ArrayList<>(aux);
@@ -572,15 +615,16 @@ public class PrincipalGUI extends JFrame {
 		lista.setFixedCellWidth(CELL_SIZE);
 		lista.setFixedCellHeight(CELL_SIZE);
 		lista.setBorder(new LineBorder(Color.black));
-		crearManejadorListaFotosPerfil(lista, fotos);
+		crearManejadorListaPerfil(lista, fotos, username, MODE_FOTO);
 
 		JScrollPane scrollFotos = new JScrollPane(lista);
 		scrollFotos.getVerticalScrollBar().setUnitIncrement(DEFAULT_SCROLL);
 		scrollFotos.getVerticalScrollBar().setValue(0);
 		panelFotosPerfil.add(scrollFotos, BorderLayout.CENTER);
-//		if (Controlador.INSTANCE.getUsuarioActual().equals(username) && this.panelFotosPerfil.isEmpty()) {
-//			this.panelFotosPerfil = Optional.of(panelFotos);
-//		}
+		// if (Controlador.INSTANCE.getUsuarioActual().equals(username) &&
+		// this.panelFotosPerfil.isEmpty()) {
+		// this.panelFotosPerfil = Optional.of(panelFotos);
+		// }
 	}
 
 	private void cargarImagenesModelo(ArrayList<ComunicacionConGUI> publish, DefaultListModel<ImageIcon> model) {
@@ -608,25 +652,74 @@ public class PrincipalGUI extends JFrame {
 		}
 	}
 
-	private void crearManejadorListaFotosPerfil(JList<ImageIcon> lista, List<ComunicacionConGUI> fotos) {
-		lista.addListSelectionListener(ev -> {
-			ShowImageGUI w = new ShowImageGUI(this.framePrincipal, fotos.get(lista.getSelectedIndex()),
-					ShowImageGUI.MODE_FOTO_COMENTARIO);
-			w.setVisible(true);
+	private void crearManejadorListaPerfil(JList<ImageIcon> lista, List<ComunicacionConGUI> fotos, String username,
+			int mode) {
+		lista.addMouseListener(new MouseAdapter() {
+			int index;
+
+			public void mouseClicked(MouseEvent e) {
+				index = lista.getSelectedIndex();
+				// Opción de que se pinche con click izquierdo la foto
+				if (e.getButton() == MouseEvent.BUTTON1) {
+					mostrarPublicacion(fotos.get(index), mode);
+				}
+				// Opción de que se pinche con click derecho
+				if (e.getButton() == MouseEvent.BUTTON3) {
+					index = lista.locationToIndex(new Point(e.getPoint()));
+					JPopupMenu popFotoPerfil = new JPopupMenu();
+
+					// Elementos del menu
+					{
+						// Botón para ver foto
+						JMenuItem itemVerFoto = new JMenuItem("Ver");
+						// manejador pulsando la opción de ver foto
+						itemVerFoto.addMouseListener(new MouseAdapter() {
+							public void mousePressed(MouseEvent ev) {
+								mostrarPublicacion(fotos.get(index), mode);
+							}
+						});
+						popFotoPerfil.add(itemVerFoto);
+
+						// Botón para borrar foto
+						if (Controlador.INSTANCE.getUsuarioActual().equals(fotos.get(0).getUsername())) {
+							JMenuItem itemBorrarFoto = new JMenuItem("Eliminar");
+							// manejador pulsando opción de eliminar
+							itemBorrarFoto.addMouseListener(new MouseAdapter() {
+								public void mousePressed(MouseEvent ev) {
+									borrarPublicacion(fotos.get(index).getIdPubli(), mode);
+								}
+							});
+							popFotoPerfil.add(itemBorrarFoto);
+						}
+					}
+
+					popFotoPerfil.show(e.getComponent(), e.getX(), e.getY());
+				}
+			}
 		});
 	}
 
-	private void crearManejadorListaFotosAlbumes(JList<ImageIcon> lista, List<ComunicacionConGUI> albumes,
-			String username) {
-		lista.addListSelectionListener(ev -> {
-			if (!ev.getValueIsAdjusting()) {
-				ShowAlbumGUI w = new ShowAlbumGUI(framePrincipal, albumes.get(lista.getSelectedIndex()), username);
-				w.setVisible(true);
-				panelFotosPerfil.removeAll();
-				cargarAlbumesPerfil(Controlador.INSTANCE.getUsuarioActual());
-				recargarVentana();
-			}
-		});
+	private void borrarPublicacion(int idPubli, int mode) {
+		Controlador.INSTANCE.deletePublicacion(idPubli);
+		panelFotosPerfil.removeAll();
+		if (mode == MODE_FOTO)
+			cargarFotosPerfil(Controlador.INSTANCE.getUsuarioActual());
+		else
+			cargarAlbumesPerfil(Controlador.INSTANCE.getUsuarioActual());
+		recargarVentana();
+	}
+
+	private void mostrarPublicacion(ComunicacionConGUI publi, int mode) {
+		if (mode == MODE_FOTO) {// Cargamos la foto
+			ShowImageGUI w = new ShowImageGUI(framePrincipal, publi, ShowImageGUI.MODE_FOTO_COMENTARIO);
+			w.setVisible(true);
+		} else if (mode == MODE_ALBUM) {// Cargamos el album
+			ShowAlbumGUI w = new ShowAlbumGUI(framePrincipal, publi);
+			w.setVisible(true);
+			panelFotosPerfil.removeAll();
+			cargarAlbumesPerfil(Controlador.INSTANCE.getUsuarioActual());
+			recargarVentana();
+		}
 	}
 
 	private JPanel cargarFotos() {// Cargamos fotos de la pantalla principal
@@ -754,7 +847,7 @@ public class PrincipalGUI extends JFrame {
 			panelListaFotos.add(new JPanel());
 			padding--;
 		}
-//		this.panelFotosCentral = Optional.of(panelListaFotos);
+		// this.panelFotosCentral = Optional.of(panelListaFotos);
 		return panelListaFotos;
 	}
 

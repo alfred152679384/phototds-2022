@@ -40,15 +40,15 @@ public enum RepoUsuarios {
 		List<Usuario> listaUsuarios = factoria.getUsuarioDAO().getAll();
 		for (Usuario usuario : listaUsuarios) {
 			usuariosPorID.put(usuario.getId(), usuario);
-			usuariosPorLogin.put(usuario.getUsername(), usuario);
 			usuariosPorEmail.put(usuario.getEmail(), usuario);
+			usuariosPorLogin.put(usuario.getUsername(), usuario);
 		}
 	}
 	
 	//Getters & Setters
-	public Collection<Usuario> getUsuariosRegistrados(){
-		return Collections.unmodifiableCollection(this.usuariosPorID.values());
-	}
+	public List<Usuario> getUsuariosRegistrados(){
+		return usuariosPorID.values().stream().collect(Collectors.toList());
+	}	
 	
 	public String getFotoPerfilUsuario(String username) {
 		return this.usuariosPorLogin.get(username).getFotoPerfil();
@@ -119,6 +119,18 @@ public enum RepoUsuarios {
 					.collect(Collectors.toList());
 		}
 		return list;
+	}
+	
+	public void cargarNotificaciones() {
+		this.usuariosPorID.values().stream()
+			.forEach(u -> u.cargarNotificaciones());
+	}
+	
+	public void addPublicacion(Usuario usuario, Publicacion p) {
+		usuario.addPublicacion(p);
+		for(Usuario u : usuario.getSeguidores()) {
+			factoria.getUsuarioDAO().update(u);
+		}
 	}
 
 	public Optional<Usuario> findUsuarioEmail(String email) {
