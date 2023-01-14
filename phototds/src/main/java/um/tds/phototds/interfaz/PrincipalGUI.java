@@ -123,7 +123,6 @@ public class PrincipalGUI extends JFrame {
 	private void cargarNotificaciones() {
 		List<ComunicacionConGUI> notifs = Controlador.INSTANCE.getNotificacionesUsuarioActual();
 		for (ComunicacionConGUI n : notifs) {
-					+ n.getTitulo());
 			JOptionPane.showMessageDialog(framePrincipal,
 					n.getFecha().format(Controlador.HUMAN_FORMATTER) + ":\nEl usuario " + n.getUsername()
 							+ " ha realizado una publicación con título: " + n.getTitulo(),
@@ -252,6 +251,7 @@ public class PrincipalGUI extends JFrame {
 			popOptions.add(itemPdf);
 
 			JMenuItem itemExcel = new JMenuItem("Generar Excel");
+			addManejadorItemExcel(itemExcel);
 			popOptions.add(itemExcel);
 
 			JMenuItem itemTopMG = new JMenuItem("Top Me gusta");
@@ -262,6 +262,18 @@ public class PrincipalGUI extends JFrame {
 		btnOptions.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
 				popOptions.show(e.getComponent(), e.getX(), e.getY());
+			}
+		});
+	}
+	
+	private void addManejadorItemExcel(JMenuItem itemExcel) {
+		itemExcel.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				if(!isUsuarioPremium())
+					return;
+				Controlador.INSTANCE.crearExcelSeguidores();
+				JOptionPane.showMessageDialog(framePrincipal, "El fichero Excel ha sido creado correctamente", 
+						"Excel generado", JOptionPane.INFORMATION_MESSAGE);
 			}
 		});
 	}
@@ -716,9 +728,6 @@ public class PrincipalGUI extends JFrame {
 		} else if (mode == MODE_ALBUM) {// Cargamos el album
 			ShowAlbumGUI w = new ShowAlbumGUI(framePrincipal, publi);
 			w.setVisible(true);
-			panelFotosPerfil.removeAll();
-			cargarAlbumesPerfil(Controlador.INSTANCE.getUsuarioActual());
-			recargarVentana();
 		}
 	}
 

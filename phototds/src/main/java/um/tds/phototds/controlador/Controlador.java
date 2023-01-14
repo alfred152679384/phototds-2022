@@ -20,6 +20,7 @@ public enum Controlador {
 
 	// Constantes
 	public static final DateTimeFormatter HUMAN_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+	public static final int PRECIO_PREMIUM = 5;// 5€
 
 	// Atributos
 	private Usuario usuario;
@@ -157,7 +158,7 @@ public enum Controlador {
 	
 	public List<ComunicacionConGUI> getNotificacionesUsuarioActual(){
 		List<ComunicacionConGUI> comList = new LinkedList<>();
-		List<Notificacion> notifs = usuario.getNotificaciones();
+		List<Notificacion> notifs = RepoUsuarios.INSTANCE.getNotificaciones(usuario);
 		for(Notificacion n : notifs) {
 			ComGUIBuilder b = new ComGUIBuilder();
 			b.buildUsername(n.getPublicacion().getUsuario().getUsername());
@@ -251,8 +252,8 @@ public enum Controlador {
 		List<Foto> fotos = usuario.getFotosPerfil().stream().sorted((o1, o2) -> Integer.compare(o2.getMeGustas(), o1.getMeGustas()))
 				.limit(10).collect(Collectors.toList());
 
-		ComGUIBuilder b = new ComGUIBuilder();
 		for(Foto f : fotos) {
+			ComGUIBuilder b = new ComGUIBuilder();
 			b.buildPathFoto(f.getPath());
 			b.buildMeGustas(f.getMeGustas());
 			comList.add(b.getResult());
@@ -272,7 +273,22 @@ public enum Controlador {
 	}
 
 	public double comprobarDescuento(int mode) {
-		return usuario.aplicarDescuento(mode);
+		switch(mode) {
+		case 0:
+			usuario.setDescuentoEstrategia(new DescuentoEdadEstrategia(usuario));
+			break;
+		case 1:
+			usuario.setDescuentoEstrategia(new DescuentoMeGustasEstrategia(usuario));
+			break;
+		default:
+			return PRECIO_PREMIUM;
+		}
+		return usuario.aplicarDescuento();
+	}
+	
+	public void crearExcelSeguidores() {
+		GeneradorExcel g = new GeneradorExcel();
+		g.generarExcel(usuario.getSeguidores());
 	}
 
 	public List<ComunicacionConGUI> lookFor(String txt) {

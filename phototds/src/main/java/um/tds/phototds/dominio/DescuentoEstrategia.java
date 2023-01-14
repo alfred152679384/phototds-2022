@@ -1,6 +1,7 @@
 package um.tds.phototds.dominio;
 
-public interface Descuento {
+public interface DescuentoEstrategia {
 	
 	public double aplicarDescuento();
+	
 }

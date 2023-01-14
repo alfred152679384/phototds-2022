@@ -92,6 +92,10 @@ public enum RepoUsuarios {
 		actualUser.seguirUsuario(seguido);
 		seguido.addseguidor(actualUser);
 		
+		//TODO BORRAR
+		System.out.println(seguido.getUsername()+"sres: "+seguido.getSeguidoresDAO());
+		System.out.println(actualUser.getUsername()+"sdos: "+actualUser.getSeguidosDAO());
+		
 		//Actualizar en persistencia
 		factoria.getUsuarioDAO().update(actualUser);
 		factoria.getUsuarioDAO().update(seguido);
@@ -124,6 +128,12 @@ public enum RepoUsuarios {
 	public void cargarNotificaciones() {
 		this.usuariosPorID.values().stream()
 			.forEach(u -> u.cargarNotificaciones());
+	}
+	
+	public List<Notificacion> getNotificaciones(Usuario u){
+		List<Notificacion> notifList = u.getNotificaciones();
+		factoria.getUsuarioDAO().update(u);
+		return notifList;
 	}
 	
 	public void addPublicacion(Usuario usuario, Publicacion p) {

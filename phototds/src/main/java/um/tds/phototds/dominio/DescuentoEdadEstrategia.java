@@ -8,7 +8,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-public class DescuentoEdad implements Descuento {
+public class DescuentoEdadEstrategia implements DescuentoEstrategia {
 	// Constantes
 	private static final double DESCUENTO_JOVENES = 0.25;
 	private static final double DESCUENTO_JUBILADOS = 0.5;
@@ -21,7 +21,7 @@ public class DescuentoEdad implements Descuento {
 	private Usuario usuario;
 
 	// Constructor
-	public DescuentoEdad(Usuario u) {
+	public DescuentoEdadEstrategia(Usuario u) {
 		usuario = u;
 	}
 

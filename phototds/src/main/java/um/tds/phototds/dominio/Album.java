@@ -47,4 +47,10 @@ public class Album extends Publicacion {
 		listaFotos.addAll(fList);
 	}
 	
+	@Override
+	public void darMeGusta() {
+		super.darMeGusta();
+		listaFotos.stream().forEach(f -> f.darMeGusta());
+	}
+	
 }

@@ -126,9 +126,8 @@ public class Publicacion implements Comparable<Publicacion> {
 		return true;
 	}
 	
-	public boolean darMeGusta() {
+	public void darMeGusta() {
 		this.meGustas++;
-		return true;
 	}
 	
 	protected List<String> detectarHashtags(String s) {

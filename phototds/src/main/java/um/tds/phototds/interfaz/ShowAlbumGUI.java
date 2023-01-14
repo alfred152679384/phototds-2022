@@ -17,6 +17,7 @@ import um.tds.phototds.controlador.Controlador;
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -35,12 +36,16 @@ public class ShowAlbumGUI extends JDialog {
 	private static final int FRAME_SIZE = 450;
 	private static final int ALBUM_CELL_SIZE = FRAME_SIZE / 3 - 12;
 	private static final int DEFAULT_SCROLL = 10;
+	private static final int LIKE_SIZE = 25;
+	private static final String LIKE_PATH = "resources\\like.jpg";
+	
 
 	// Atributos
 	private JFrame owner;
 	private ComunicacionConGUI album;
 	private JPanel panelCentral;
 	private String propietarioAlbum;
+	private JPanel panelNorte;
 
 	/**
 	 * Create the dialog.
@@ -55,6 +60,7 @@ public class ShowAlbumGUI extends JDialog {
 		getContentPane().setBackground(Color.white);
 		this.propietarioAlbum = album.getUsername();
 		this.album = album;
+		this.panelNorte = new JPanel();
 
 		panelCentral.setLayout(new BorderLayout(0, 0));
 		getContentPane().add(panelCentral, BorderLayout.CENTER);
@@ -65,7 +71,6 @@ public class ShowAlbumGUI extends JDialog {
 	}
 
 	private void crearPanelNorte() {
-		JPanel panelNorte = new JPanel();
 		getContentPane().add(panelNorte, BorderLayout.NORTH);
 		panelNorte.setLayout(new BoxLayout(panelNorte, BoxLayout.Y_AXIS));
 		{
@@ -93,8 +98,17 @@ public class ShowAlbumGUI extends JDialog {
 				panelDescAlbum.add(lblDescAlbum);
 			}
 		}
+		{
+			JPanel panelContadorMG = new JPanel();
+			panelNorte.add(panelContadorMG);
+			{
+				int mg = Controlador.INSTANCE.getMeGustasFoto(this.album.getIdPubli());
+				JLabel lblContadorMG = new JLabel(Integer.toString(mg)+" Me gustas");
+				panelContadorMG.add(lblContadorMG);
+			}
+		}
 	}
-
+	
 	private void cargarPanelCentral() {
 		DefaultListModel<ImageIcon> model = new DefaultListModel<>();
 		JList<ImageIcon> lista;
@@ -167,5 +181,42 @@ public class ShowAlbumGUI extends JDialog {
 			});
 			panelSur.add(btnAddFoto);
 		}
+		
+		JButton btnMG = new JButton("Like");
+		try {
+			btnMG = cargarImagenLike();
+		} catch (IOException e) {
+			System.err.println("Excepción: Like Boton in showAlbumGUI");
+			e.printStackTrace();
+		}
+		addManejadorBtnMG(btnMG);
+		panelSur.add(btnMG);
+	}
+	
+	private void addManejadorBtnMG(JButton btnMG) {
+		btnMG.addActionListener(ev -> {
+			panelNorte.removeAll();
+			crearPanelNorte();
+			Controlador.INSTANCE.darMeGusta(this.album.getIdPubli());
+			ShowAlbumGUI.this.revalidate();
+			ShowAlbumGUI.this.repaint();
+		});
+	}
+	
+	private JButton cargarImagenLike() throws IOException {
+		BufferedImage original;
+		File fi = new File(LIKE_PATH);
+		original = ImageIO.read(fi);
+
+		// Redimensionamos la foto al tamaño pedido
+		double[] size = new double[2];
+		size[0] = original.getWidth();
+		size[1] = original.getHeight();
+		Controlador.setProp(size, LIKE_SIZE, LIKE_SIZE);
+		Image resizedImg = original.getScaledInstance((int) size[0], (int) size[1], Image.SCALE_SMOOTH);
+
+		// Creamos botón con imagen dimensionada
+		Icon icon = new ImageIcon(resizedImg);
+		return new JButton(icon);
 	}
 }

@@ -22,7 +22,6 @@ import um.tds.phototds.controlador.Controlador;
 public class Usuario implements NotificacionListener {
 	// Constantes
 	private static final String DEFAULT_FOTO = "resources\\unnamed_photo.png";
-	private static final int PRECIO_PREMIUM = 5;// 5€
 
 	// Atributos
 	private int id;
@@ -33,7 +32,7 @@ public class Usuario implements NotificacionListener {
 
 	private Date fechaNacimiento;
 	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-	private Descuento descuento;
+	private DescuentoEstrategia descuentoEstrategia;
 
 	private Optional<String> fotoPerfil;
 	private Optional<String> presentacion;
@@ -70,6 +69,7 @@ public class Usuario implements NotificacionListener {
 		this.seguidoresString = Optional.empty();
 		this.seguidosString = Optional.empty();
 		this.notificaciones = new LinkedList<>();
+		this.notifString = "[]";
 	}
 
 	// Constructor DAO
@@ -181,6 +181,10 @@ public class Usuario implements NotificacionListener {
 			return presentacion.get();
 		return "null";
 	}
+	
+	public void setDescuentoEstrategia(DescuentoEstrategia d) {
+		this.descuentoEstrategia = d;
+	}
 
 	public String getNotificacionesDAO() {
 		String n = "[";
@@ -217,23 +221,25 @@ public class Usuario implements NotificacionListener {
 	}
 
 	public void setSeguidoresDAO(List<Usuario> seguidores) {
-		this.seguidores = new LinkedList<>(seguidores);
+		this.seguidores.addAll(seguidores);
 	}
 
 	public void setSeguidosDAO(List<Usuario> seguidos) {
-		this.seguidos = new LinkedList<>(seguidos);
+		this.seguidos.addAll(seguidos);
 	}
 
 	public int getNumPublicaciones() {
 		return this.publicaciones.size();
 	}
-	
-	public List<Usuario> getSeguidores(){
+
+	public List<Usuario> getSeguidores() {
 		return this.seguidores;
 	}
 
 	public List<Notificacion> getNotificaciones() {
-		return this.notificaciones;
+		List<Notificacion> notifs = new LinkedList<>(this.notificaciones);
+		this.notificaciones.clear();
+		return notifs;
 	}
 
 	// Funcionalidad
@@ -243,7 +249,7 @@ public class Usuario implements NotificacionListener {
 	}
 
 	public void darMeGusta(Publicacion f) {
-		publicaciones.stream().filter(p -> p.getId() == f.getId()).map(p -> p.darMeGusta());
+		publicaciones.stream().filter(p -> p.getId() == f.getId()).forEach(p -> p.darMeGusta());
 	}
 
 	public void removePublicacion(int id) {
@@ -281,7 +287,7 @@ public class Usuario implements NotificacionListener {
 		this.notificaciones = new LinkedList<>();
 		if (this.notifString.equals("[]")) {
 			return;
-		}			
+		}
 		String aux = this.notifString.substring(1, notifString.length() - 1);
 		String[] notifs = aux.split(",");
 		for (String n : notifs) {
@@ -290,24 +296,13 @@ public class Usuario implements NotificacionListener {
 		}
 	}
 
-	public double aplicarDescuento(int mode) {
-		switch (mode) {
-		case 0:
-			this.descuento = new DescuentoEdad(this);
-			return PRECIO_PREMIUM * (1 - descuento.aplicarDescuento());
-
-		case 1:
-			this.descuento = new DescuentoMeGustas(this);
-			return PRECIO_PREMIUM * (1 - descuento.aplicarDescuento());
-
-		default:
-		}
-
-		return PRECIO_PREMIUM;
+	public double aplicarDescuento() {
+		return Controlador.PRECIO_PREMIUM * (1-descuentoEstrategia.aplicarDescuento());
 	}
 
 	public List<Foto> getFotosPerfil() {
-		return publicaciones.stream().filter(p -> p instanceof Foto).map(p -> (Foto) p).collect(Collectors.toList());
+		return publicaciones.stream().filter(p -> p instanceof Foto).map(p -> (Foto) p)
+				.sorted((o1, o2) -> o1.compareTo(o2)).collect(Collectors.toList());
 	}
 
 	public List<Album> getAlbumesPerfil() {

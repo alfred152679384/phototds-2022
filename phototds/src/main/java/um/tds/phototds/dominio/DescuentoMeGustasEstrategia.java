@@ -1,6 +1,6 @@
 package um.tds.phototds.dominio;
 
-public class DescuentoMeGustas implements Descuento {
+public class DescuentoMeGustasEstrategia implements DescuentoEstrategia {
 	//Constantes
 	private static final int ME_GUSTAS_DESCUENTO = 20;
 	private static final double DESCUENTO = 0.3;
@@ -9,7 +9,7 @@ public class DescuentoMeGustas implements Descuento {
 	private Usuario usuario;
 	
 	//Constructor
-	public DescuentoMeGustas(Usuario u) {
+	public DescuentoMeGustasEstrategia(Usuario u) {
 		usuario = u;
 	}
 

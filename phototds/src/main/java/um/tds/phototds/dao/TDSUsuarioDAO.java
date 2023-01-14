@@ -58,6 +58,9 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 		String listaSeguidos = servPersistencia.recuperarPropiedadEntidad(eUsuario, SEGUIDOS);
 		String notificaciones = servPersistencia.recuperarPropiedadEntidad(eUsuario, NOTIFICACIONES);
 		
+		System.out.println(username+"-sr:"+listaSeguidores);
+		System.out.println(username+"-sd:"+listaSeguidos);
+
 		Usuario usuario = new Usuario(username, nombre, email, password, fechaNacimiento, fotoPerfil, presentacion,
 				isPremium, listaSeguidores, listaSeguidos, notificaciones);
 		usuario.setId(eUsuario.getId());
@@ -138,8 +141,10 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 				prop.setValor(usuario.getDAOPresentacion());
 			} else if (prop.getNombre().equals(SEGUIDORES)) {
 				prop.setValor(usuario.getSeguidoresDAO());
+				System.out.println(usuario.getUsername()+"-sr:"+usuario.getSeguidoresDAO());
 			} else if (prop.getNombre().equals(SEGUIDOS)) {
 				prop.setValor(usuario.getSeguidosDAO());
+				System.out.println(usuario.getUsername()+"-sd:"+usuario.getSeguidosDAO());
 			} else if (prop.getNombre().equals(NOTIFICACIONES)) {
 				prop.setValor(usuario.getNotificacionesDAO());
 			}

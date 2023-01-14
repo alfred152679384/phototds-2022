@@ -35,7 +35,7 @@ public class TopMgGUI extends JDialog {
 	 */
 	public TopMgGUI(JFrame owner) {
 		super(owner, "Fotos Top Me Gusta", true);
-		setBounds(100, 100, 450, 300);
+		setBounds(100, 100, 450, 600);
 		BorderLayout borderLayout = new BorderLayout();
 		getContentPane().setLayout(borderLayout);
 		
