@@ -1,0 +1,29 @@
+<?xml version ="1.0" encoding ="UTF-8" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://www.tds.es/fotos" xmlns="http://www.tds.es/fotos"
+	elementFormDefault="qualified">
+	
+	<xs:element name="fotos">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="foto" type="Foto" minOccurs="0" maxOccurs="unbounded" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:complexType name="Foto">
+		<xs:sequence>
+			<xs:element name="Path" type="xs:string" minOccurs="1" maxOccurs="1" />
+			<xs:element name="Descripcion" type="xs:string" minOccurs="0" maxOccurs="1" />
+			<xs:element name="HashTags" type="HashTag" minOccurs="0" maxOccurs="unbounded" />
+		</xs:sequence>
+		<xs:attribute name="titulo" type="xs:string" use="required" />
+	</xs:complexType>
+	
+	<xs:complexType name="HashTag">
+		<xs:sequence>
+			<xs:element name="HashTag" type="xs:string" minOccurs="1" maxOccurs="unbounded" />
+		</xs:sequence>
+	</xs:complexType>
+
+</xs:schema>
