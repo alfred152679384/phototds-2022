@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fotos xmlns="http://www.tds.es/fotos" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.tds.es/fotos fotos.xsd">
+
+	<foto titulo="photo25-castillo">
+		<Path><![CDATA[resources\photos\photo25.jpg]]></Path>
+		<Descripcion>Castillo de Lorca al amanecer</Descripcion>
+		<HashTags>
+			<HashTag>castillo</HashTag>
+			<HashTag>lorca</HashTag>
+		</HashTags>
+	</foto>
+	
+	
+	<foto titulo="photo26-Amanecer">
+		<Path><![CDATA[resources\photos\photo26.jpg]]></Path>
+		<Descripcion>Amanecer en Lorca</Descripcion>
+		<HashTags>
+			<HashTag>amanecer</HashTag>
+			<HashTag>lorca</HashTag>
+		</HashTags>
+	</foto>
+
+	<foto titulo="photo20-palmera">
+		<Path><![CDATA[resources\photos\photo27.jpg]]></Path>
+		<Descripcion>Plano Aberrante de una palmera</Descripcion>
+		<HashTags>
+			<HashTag>palmera</HashTag>
+			<HashTag>planoAberrante</HashTag>
+		</HashTags>
+	</foto>
+
+
+</fotos>

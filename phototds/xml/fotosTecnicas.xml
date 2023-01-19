@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fotos xmlns="http://www.tds.es/fotos" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:schemaLocation="http://www.tds.es/fotos fotos.xsd">
+
+	<foto titulo="photo18-corazon">
+		<Path><![CDATA[resources\photos\photo18.jpg]]></Path>
+		<Descripcion>Foto corazón de melón</Descripcion>
+		<HashTags>
+			<HashTag>corazon</HashTag>
+			<HashTag>amor</HashTag>
+		</HashTags>
+	</foto>
+	
+	
+	<foto titulo="photo19-Agua">
+		<Path><![CDATA[resources\photos\photo19.jpg]]></Path>
+		<Descripcion>Gota de agua cayendo</Descripcion>
+		<HashTags>
+			<HashTag>fotoChula</HashTag>
+			<HashTag>salpicando</HashTag>
+			<HashTag>obturador</HashTag>
+		</HashTags>
+	</foto>
+
+	<foto titulo="photo20-FuenteDelOro">
+		<Path><![CDATA[resources\photos\photo20.jpg]]></Path>
+		<Descripcion>Caños de la fuente del oro</Descripcion>
+		<HashTags>
+			<HashTag>oro</HashTag>
+			<HashTag>caños</HashTag>
+		</HashTags>
+	</foto>
+
+
+</fotos>

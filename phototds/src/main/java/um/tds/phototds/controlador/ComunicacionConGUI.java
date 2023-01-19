@@ -148,20 +148,5 @@ public class ComunicacionConGUI {
 	//Funcionalidad
 	public void addFotos(List<ComunicacionConGUI> comList) {
 		this.fotosAlbumes.addAll(comList);
-	}
-
-	@Override
-	public String toString() {
-		String af = "[";
-		for(ComunicacionConGUI c : fotosAlbumes) {
-			af+="id="+c.getIdPubli()+"_path="+c.getPathFoto()+",";
-		}
-		af+="]";
-		return "ComunicacionConGUI [mode=" + mode + ", username=" + username + ", pathFoto=" + pathFoto
-				+ ", nombreUsuario=" + nombreUsuario + ", hashtag=" + hashtag + ", numSeguidoresUsuario="
-				+ numSeguidoresUsuario + ", idPubli=" + idPubli + ", fecha=" + fecha + ", meGustas=" + meGustas
-				+ ", titulo=" + titulo + ", desc=" + desc + ", fotosAlbumes=" + af +"]";
-	}
-	
-	
+	}	
 }

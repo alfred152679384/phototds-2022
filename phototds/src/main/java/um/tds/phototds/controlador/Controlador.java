@@ -1,21 +1,23 @@
 package um.tds.phototds.controlador;
 
-import java.awt.Frame;
-import java.time.LocalDate;
+import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+
 import um.tds.phototds.dao.*;
 import um.tds.phototds.dominio.*;
-import um.tds.phototds.interfaz.PrincipalGUI;
+import umu.tds.fotos.ComponenteCargadorFotos;
+import umu.tds.fotos.Fotos;
+import umu.tds.fotos.FotosEvent;
+import umu.tds.fotos.FotosListener;
 
-public enum Controlador {
+public enum Controlador implements FotosListener{
 	INSTANCE;// Singleton
 
 	// Constantes
@@ -30,6 +32,7 @@ public enum Controlador {
 	private Controlador() {
 		try {
 			factoria = FactoriaDAO.getInstancia();
+			ComponenteCargadorFotos.INSTANCE.addFotoListener(this);
 		} catch (DAOException e) {
 			e.printStackTrace();
 		}
@@ -258,8 +261,6 @@ public enum Controlador {
 			b.buildMeGustas(f.getMeGustas());
 			comList.add(b.getResult());
 		}
-		
-//				forEach(f -> comList.add(new ComunicacionConGUI(f.getPath(), f.getMeGustas(), 0)));
 		return comList;
 	}
 
@@ -289,6 +290,38 @@ public enum Controlador {
 	public void crearExcelSeguidores() {
 		GeneradorExcel g = new GeneradorExcel();
 		g.generarExcel(usuario.getSeguidores());
+	}
+	
+	public void crearPdfSeguidoeres() {
+		GeneradorPDF p =  new GeneradorPDF();
+		p.generarPDF(usuario.getSeguidores());
+	}
+	
+	public boolean cargarFotosBean(File f) {
+		if(!f.getAbsolutePath().endsWith(".xml")) {
+			return false;
+		}
+		ComponenteCargadorFotos.INSTANCE.setArchivoFoto(f.getAbsolutePath());
+		return true;
+	}
+	
+	@Override
+	public void notificaNuevasFotos(FotosEvent ev) {
+		Fotos fotos = ev.getFotos();
+
+		
+		//Metemos las fotos en el usuario
+		for(umu.tds.fotos.Foto f : fotos.getFotos()) {
+			Publicacion p = new Foto(usuario, f.getTitulo(), f.getDescripcion(), f.getPath());
+			f.getHashTags().stream().forEach(h -> h.getHashTag().stream()
+					.forEach(ha -> p.addHashTag(ha)));
+			
+			PublicacionDAO daoFoto = factoria.getPublicacionDAO();
+			daoFoto.create(p);
+			RepoPublicaciones.INSTANCE.addPublicacion(p);
+			RepoUsuarios.INSTANCE.addPublicacion(usuario, p);
+			factoria.getUsuarioDAO().update(usuario);
+		}
 	}
 
 	public List<ComunicacionConGUI> lookFor(String txt) {

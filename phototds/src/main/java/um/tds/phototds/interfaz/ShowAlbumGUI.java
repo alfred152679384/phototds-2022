@@ -37,7 +37,7 @@ public class ShowAlbumGUI extends JDialog {
 	private static final int ALBUM_CELL_SIZE = FRAME_SIZE / 3 - 12;
 	private static final int DEFAULT_SCROLL = 10;
 	private static final int LIKE_SIZE = 25;
-	private static final String LIKE_PATH = "resources\\like.jpg";
+	private static final String LIKE_PATH = "resources\\like.png";
 	
 
 	// Atributos
@@ -132,7 +132,7 @@ public class ShowAlbumGUI extends JDialog {
 	private void crearManejadorListaFotosAlbumes(JList<ImageIcon> lista) {
 		lista.addListSelectionListener(ev -> {
 			ShowImageGUI w = new ShowImageGUI(owner, album.getListaFotosAlbum().get(lista.getSelectedIndex()),
-					ShowImageGUI.MODE_FOTO_COMENTARIO);
+					ShowImageGUI.MODE_FOTO_ONLY);
 			w.setVisible(true);
 		});
 	}
@@ -196,8 +196,8 @@ public class ShowAlbumGUI extends JDialog {
 	private void addManejadorBtnMG(JButton btnMG) {
 		btnMG.addActionListener(ev -> {
 			panelNorte.removeAll();
-			crearPanelNorte();
 			Controlador.INSTANCE.darMeGusta(this.album.getIdPubli());
+			crearPanelNorte();
 			ShowAlbumGUI.this.revalidate();
 			ShowAlbumGUI.this.repaint();
 		});

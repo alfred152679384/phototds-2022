@@ -14,6 +14,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="resources"/>
+	<classpathentry kind="src" path="xml"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
 		<attributes>
 			<attribute name="module" value="true"/>
@@ -31,5 +32,9 @@
 	<classpathentry kind="lib" path="lib/javax.persistence-api-2.2.jar"/>
 	<classpathentry kind="lib" path="lib/jcalendar-1.4.jar"/>
 	<classpathentry kind="lib" path="lib/poi-3.17.jar"/>
+	<classpathentry kind="lib" path="lib/kernel-7.2.5.jar"/>
+	<classpathentry kind="lib" path="lib/layout-7.2.5.jar"/>
+	<classpathentry kind="lib" path="lib/Luz.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/ProyectoComponenteFotos"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

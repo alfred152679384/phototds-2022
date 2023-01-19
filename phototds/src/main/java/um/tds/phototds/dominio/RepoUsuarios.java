@@ -92,10 +92,6 @@ public enum RepoUsuarios {
 		actualUser.seguirUsuario(seguido);
 		seguido.addseguidor(actualUser);
 		
-		//TODO BORRAR
-		System.out.println(seguido.getUsername()+"sres: "+seguido.getSeguidoresDAO());
-		System.out.println(actualUser.getUsername()+"sdos: "+actualUser.getSeguidosDAO());
-		
 		//Actualizar en persistencia
 		factoria.getUsuarioDAO().update(actualUser);
 		factoria.getUsuarioDAO().update(seguido);
@@ -138,9 +134,8 @@ public enum RepoUsuarios {
 	
 	public void addPublicacion(Usuario usuario, Publicacion p) {
 		usuario.addPublicacion(p);
-		for(Usuario u : usuario.getSeguidores()) {
-			factoria.getUsuarioDAO().update(u);
-		}
+		usuario.getSeguidores().stream()
+			.forEach(s -> factoria.getUsuarioDAO().update(s));
 	}
 
 	public Optional<Usuario> findUsuarioEmail(String email) {

@@ -25,8 +25,6 @@ public enum RepoPublicaciones {
 	private RepoPublicaciones() {
 		publicacionesPorId = new HashMap<Integer, Publicacion>();
 		publicacionesPorHashtag = new HashMap<String, List<Publicacion>>();
-//		fotos = new HashMap<Integer,Foto>();
-//		albumes = new HashMap<Integer, Album>();
 
 		try {
 			factoria = FactoriaDAO.getInstancia();
@@ -38,6 +36,11 @@ public enum RepoPublicaciones {
 	}
 
 	// Getters & Setters
+	public int getMeGustasPublicacion(int idPubli) {
+		return this.publicacionesPorId.get(idPubli).getMeGustas();
+	}
+
+	// Funcionalidad
 	public List<Publicacion> lookForPublicacion(String h) {
 		List<Publicacion> list = new LinkedList<>();
 		publicacionesPorHashtag.keySet().stream().filter(k -> k.contains(h))
@@ -45,22 +48,9 @@ public enum RepoPublicaciones {
 		return Collections.unmodifiableList(list);
 	}
 
-	public int getMeGustasPublicacion(int idPubli) {
-		return this.publicacionesPorId.get(idPubli).getMeGustas();
-	}
-
-	// Funcionalidad
 	private void cargarPublicaciones() {
 		List<Publicacion> listaPubli = factoria.getPublicacionDAO().getAll();
-		for (Publicacion p : listaPubli) {
-			publicacionesPorId.put(p.getId(), p);
-//			if(p instanceof Foto) {
-//				fotos.put(p.getId(), (Foto)p);
-//			}
-//			else {
-//				albumes.put(p.getId(), (Album)p);
-//			}
-		}
+		listaPubli.stream().forEach(p -> publicacionesPorId.put(p.getId(), p));
 	}
 
 	public void addComentario(int idPubli, String comentario) {
@@ -78,7 +68,7 @@ public enum RepoPublicaciones {
 	public boolean comprobarTituloAlbum(String titulo) {
 		return publicacionesPorId.values().stream().map(p -> p.getTitulo()).anyMatch(t -> t.equals(titulo));
 	}
-	
+
 	public void addFotosToAlbum(int idAlbum, List<Foto> fList) {
 		Album a = (Album) this.publicacionesPorId.get(idAlbum);
 		a.addFotos(fList);
@@ -88,11 +78,9 @@ public enum RepoPublicaciones {
 	public void cargarPublicacionesUsuarios() {
 		// Cargamos las publicaciones en los usuarios
 		List<Usuario> users = RepoUsuarios.INSTANCE.getUsuariosRegistrados();
-		for (Usuario u : users) {
-			List<Publicacion> publish = this.publicacionesPorId.values().stream()
-					.filter(p -> p.getUsuario().getUsername().equals(u.getUsername())).collect(Collectors.toList());
-			u.cargarPublicaciones(publish);
-		}
+		users.stream().forEach(u -> u.cargarPublicaciones(this.publicacionesPorId.values().stream()
+				.filter(p -> p.getUsuario().getUsername().equals(u.getUsername())).collect(Collectors.toList())));
+
 		// Cargamos los hashtags
 		for (Publicacion p : publicacionesPorId.values()) {
 			for (String h : p.getHashtags()) {
@@ -113,13 +101,13 @@ public enum RepoPublicaciones {
 	public Optional<Publicacion> findPublicacion(int id) {
 		return Optional.ofNullable(publicacionesPorId.get(id));
 	}
-	
+
 	public void deletePublicacion(int id) {
 		Publicacion p = publicacionesPorId.get(id);
 		p.getUsuario().removePublicacion(id);
 		publicacionesPorId.remove(id);
 		List<String> hashtags;
-		if(!(hashtags = p.getHashtags()).isEmpty()) {
+		if (!(hashtags = p.getHashtags()).isEmpty()) {
 			hashtags.stream().forEach(h -> publicacionesPorHashtag.remove(h));
 		}
 		factoria.getPublicacionDAO().delete(p);
@@ -132,8 +120,9 @@ public enum RepoPublicaciones {
 				List<Publicacion> list = new LinkedList<>();
 				list.add(p);
 				publicacionesPorHashtag.put(h, list);
-			} else
+			} else {
 				publicacionesPorHashtag.get(h).add(p);
+			}
 		}
 	}
 

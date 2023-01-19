@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 import um.tds.phototds.controlador.Controlador;
 
-public class Publicacion implements Comparable<Publicacion> {
+public abstract class Publicacion implements Comparable<Publicacion> {
 	// Constantes
 	private static final char SPACE = ' ';
 	private static final char AlMOHADILLA = '#';
@@ -96,7 +96,7 @@ public class Publicacion implements Comparable<Publicacion> {
 	public List<String> getHashtags(){
 		return Collections.unmodifiableList(this.hashtags);
 	}
-
+	
 	public List<Comentario> getComentarios() {
 		return Collections.unmodifiableList(this.comentarios);
 	}
@@ -121,6 +121,10 @@ public class Publicacion implements Comparable<Publicacion> {
 	}
 
 	// Funcionalidad
+	public void addHashTag(String h) {
+		this.hashtags.add("#"+h);
+	}
+	
 	public boolean addComentario(Comentario c) {
 		this.comentarios.add(c);
 		return true;

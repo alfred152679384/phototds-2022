@@ -184,11 +184,9 @@ public final class TDSPublicacionDAO implements PublicacionDAO {
 			if (e.getNombre().equals(ALBUM)) {
 				Album a = (Album) p;
 				// Recorrer fotosAlbumes añadir al album si coincide el idAlbum
-				for (Entidad fe : servPersistencia.recuperarEntidades(FOTO_ALBUM)) {// TODO cambiar a stream
-					if (servPersistencia.recuperarPropiedadEntidad(fe, ALBUM_ID).equals(Integer.toString(e.getId()))) {
-						a.addFotoDAO((Foto) get(fe.getId()));
-					}
-				}
+				servPersistencia.recuperarEntidades(FOTO_ALBUM).stream()
+					.filter(en -> servPersistencia.recuperarPropiedadEntidad(en, ALBUM_ID).equals(Integer.toString(e.getId())))
+					.forEach(en -> a.addFotoDAO((Foto) get(en.getId())));
 			}
 			publicaciones.add(p);
 		}

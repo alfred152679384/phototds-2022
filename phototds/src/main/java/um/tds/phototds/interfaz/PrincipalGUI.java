@@ -10,8 +10,6 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 
 import um.tds.phototds.controlador.ComunicacionConGUI;
 import um.tds.phototds.controlador.Controlador;
@@ -31,25 +29,22 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 import javax.swing.ImageIcon;
 import javax.swing.SwingConstants;
 import javax.swing.JList;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.awt.GridLayout;
+import pulsador.Luz;
 
 public class PrincipalGUI extends JFrame {
 	// Necesario para que no haya warnings
@@ -63,7 +58,7 @@ public class PrincipalGUI extends JFrame {
 	private static final int DEFAULT_X = 200;
 	private static final int DEFAULT_Y = 150;
 	private static final int DEFAULT_SCROLL = 10;
-	private static final int DEFAULT_FOTOS = 4;
+	private static final int DEFAULT_FOTOS = 3;
 	private static final int FRAME_SIZE = 600;
 	private static final int COMMENT_SIZE = 20;
 	private static final int ENTRADA_FOTO_PERFIL_SIZE = 50;
@@ -74,7 +69,7 @@ public class PrincipalGUI extends JFrame {
 
 	private static final String LUPA_PATH = "resources\\lupa.png";
 	private static final String OPTIONS_PATH = "resources\\options.png";
-	private static final String LIKE_PATH = "resources\\like.jpg";
+	private static final String LIKE_PATH = "resources\\like.png";
 	private static final String COMMENT_PATH = "resources\\comment.png";
 
 	// Atributos
@@ -86,9 +81,6 @@ public class PrincipalGUI extends JFrame {
 	private JPanel panelCentral;
 	private JPanel panelFotosPerfil;
 	private JPanel panelInfoUser;
-	// private Optional<JPanel> panelFotosCentral;//TODO
-	// private Optional<JPanel> panelFotosPerfil;
-	// private Optional<JPanel> panelAlbumesPerfil;
 
 	/**
 	 * Create the frame. Constructor por defecto muestra la pantalla principal
@@ -96,9 +88,6 @@ public class PrincipalGUI extends JFrame {
 	public PrincipalGUI() {
 		this.mostrarPerfil = false;
 		this.searchingUser = false;
-		// this.panelFotosPerfil = Optional.empty();
-		// this.panelFotosCentral = Optional.empty();
-		// this.panelAlbumesPerfil = Optional.empty();
 		initialize();
 	}
 
@@ -106,9 +95,6 @@ public class PrincipalGUI extends JFrame {
 	public PrincipalGUI(boolean vistaPerfil) {
 		this.mostrarPerfil = vistaPerfil;
 		this.searchingUser = false;
-		// this.panelFotosPerfil = Optional.empty();
-		// this.panelFotosCentral = Optional.empty();
-		// this.panelAlbumesPerfil = Optional.empty();
 		initialize();
 		cargarNotificaciones();
 	}
@@ -158,10 +144,14 @@ public class PrincipalGUI extends JFrame {
 		panelTitulo.add(btnTitulo);
 
 		// Panel Padding
-		JPanel panelPadding0 = new JPanel();
-		FlowLayout flowLayout = (FlowLayout) panelPadding0.getLayout();
-		flowLayout.setHgap(20);
-		panelNorte.add(panelPadding0);
+		JPanel panelBtnJavaBean = new JPanel();
+		FlowLayout fl_panelBtnJavaBean = (FlowLayout) panelBtnJavaBean.getLayout();
+		fl_panelBtnJavaBean.setHgap(20);
+		panelNorte.add(panelBtnJavaBean);
+		
+		Luz luz = new Luz();
+		addManejadorLuz(luz);
+		panelBtnJavaBean.add(luz);
 
 		// Botón para añadir Fotos
 		JPanel panelBtnAdd = new JPanel();
@@ -191,7 +181,8 @@ public class PrincipalGUI extends JFrame {
 		// Botón lupa
 		JButton btnLupa = new JButton("Search");
 		try {
-			btnLupa = crearBtnIcono(LUPA_PATH, LUPA_SIZE, LUPA_SIZE);
+			Icon i = crearBtnIcono(LUPA_PATH, LUPA_SIZE, LUPA_SIZE);
+			btnLupa = new JButton(i);
 		} catch (IOException e) {
 			System.err.println("Excepción: Imagen Boton Lupa ");
 		}
@@ -205,8 +196,9 @@ public class PrincipalGUI extends JFrame {
 		// Foto de Perfil
 		JButton btnFotoPerfil = new JButton("Profile");
 		try {
-			btnFotoPerfil = crearBtnIcono(Controlador.INSTANCE.getFotoPerfilUsuarioActual(), FOTO_PERFIL_SIZE,
+			Icon i = crearBtnIcono(Controlador.INSTANCE.getFotoPerfilUsuarioActual(), FOTO_PERFIL_SIZE,
 					FOTO_PERFIL_SIZE);
+			btnFotoPerfil = new JButton(i);
 			btnFotoPerfil.setBackground(new Color(240, 240, 240));
 		} catch (IOException e) {
 			System.err.println("Excepción: Imagen Perfil usuario");
@@ -217,13 +209,37 @@ public class PrincipalGUI extends JFrame {
 		// Botón de opciones
 		JButton btnOptions = new JButton("Options");
 		try {
-			btnOptions = crearBtnIcono(OPTIONS_PATH, OPTIONS_SIZE, OPTIONS_SIZE);
+			Icon i = crearBtnIcono(OPTIONS_PATH, OPTIONS_SIZE, OPTIONS_SIZE);
+			btnOptions = new JButton(i);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		crearMenuOpciones(btnOptions);
 		panelAjustes.add(btnOptions);
 
+	}
+	
+	private void addManejadorLuz(Luz luz) {
+		luz.addEncendidoListener(ev ->{
+			JFileChooser fc = new JFileChooser(new File(System.getProperty("user.dir")));
+			int retVal = fc.showOpenDialog(framePrincipal);
+			if (retVal == JFileChooser.APPROVE_OPTION) {
+				if(!Controlador.INSTANCE.cargarFotosBean(fc.getSelectedFile())) {
+					JOptionPane.showMessageDialog(framePrincipal, "Debe escoger un fichero XML", "Fichero Incorrecto",
+							JOptionPane.ERROR_MESSAGE);
+					luz.setColor(Color.WHITE);
+				}
+				else luz.setColor(Color.GREEN);
+				panelCentral.removeAll();
+				if(this.mostrarPerfil) {
+					cargarPerfilUsuario(Controlador.INSTANCE.getUsuarioActual());
+				}
+				else {
+					cargarPantallaPrincipal();
+				}
+				recargarVentana();
+			}
+		});
 	}
 
 	private void addManejadorBtnAddAlbum(JButton btn) {
@@ -242,12 +258,13 @@ public class PrincipalGUI extends JFrame {
 		JPopupMenu popOptions = new JPopupMenu();
 
 		// Elementos del menu
-		{// TODO
+		{
 			JMenuItem itemPremium = new JMenuItem("Premium");
 			addManejadorItemPremium(itemPremium);
 			popOptions.add(itemPremium);
 
 			JMenuItem itemPdf = new JMenuItem("Generar PDF");
+			addManejadorItemPdf(itemPdf);
 			popOptions.add(itemPdf);
 
 			JMenuItem itemExcel = new JMenuItem("Generar Excel");
@@ -265,14 +282,26 @@ public class PrincipalGUI extends JFrame {
 			}
 		});
 	}
-	
+
+	private void addManejadorItemPdf(JMenuItem itemPdf) {
+		itemPdf.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				if (!isUsuarioPremium())
+					return;
+				Controlador.INSTANCE.crearPdfSeguidoeres();
+				JOptionPane.showMessageDialog(framePrincipal, "El fichero PDF ha sido creado correctamente",
+						"PDF generado", JOptionPane.INFORMATION_MESSAGE);
+			}
+		});
+	}
+
 	private void addManejadorItemExcel(JMenuItem itemExcel) {
 		itemExcel.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
-				if(!isUsuarioPremium())
+				if (!isUsuarioPremium())
 					return;
 				Controlador.INSTANCE.crearExcelSeguidores();
-				JOptionPane.showMessageDialog(framePrincipal, "El fichero Excel ha sido creado correctamente", 
+				JOptionPane.showMessageDialog(framePrincipal, "El fichero Excel ha sido creado correctamente",
 						"Excel generado", JOptionPane.INFORMATION_MESSAGE);
 			}
 		});
@@ -350,7 +379,7 @@ public class PrincipalGUI extends JFrame {
 		});
 	}
 
-	private JButton crearBtnIcono(String path, int width, int height) throws IOException {
+	private Icon crearBtnIcono(String path, int width, int height) throws IOException {
 		// Abrimos la foto original
 		BufferedImage original;
 		File fi = new File(path);
@@ -365,8 +394,7 @@ public class PrincipalGUI extends JFrame {
 
 		// Creamos botón con imagen dimensionada
 		Icon icon = new ImageIcon(resizedImg);
-		JButton btnImg = new JButton(icon);
-		return btnImg;
+		return icon;
 	}
 
 	public static JLabel crearLabelFoto(String path, int width, int height) throws IOException {
@@ -781,7 +809,8 @@ public class PrincipalGUI extends JFrame {
 
 			JButton btnMG = new JButton("Like");
 			try {
-				btnMG = crearBtnIcono(LIKE_PATH, LIKE_SIZE, LIKE_SIZE);
+				Icon i = crearBtnIcono(LIKE_PATH, LIKE_SIZE, LIKE_SIZE);
+				btnMG = new JButton(i);
 			} catch (IOException e) {
 				System.err.println("Excepción: Like Boton");
 			}
@@ -793,7 +822,8 @@ public class PrincipalGUI extends JFrame {
 
 			JButton btnComentarios = new JButton("Coments");
 			try {
-				btnComentarios = crearBtnIcono(COMMENT_PATH, COMMENT_SIZE, COMMENT_SIZE);
+				Icon i = crearBtnIcono(COMMENT_PATH, COMMENT_SIZE, COMMENT_SIZE);
+				btnComentarios = new JButton(i);
 			} catch (IOException e) {
 				System.err.println("Excepción: Coment Boton");
 			}
