@@ -28,5 +28,8 @@ public class Foto extends Publicacion {
 	}
 	
 	//Funcionalidad
-	
+	@Override
+	public void darMeGusta() {
+		this.meGustas++;
+	}
 }

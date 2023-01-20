@@ -7,10 +7,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-
-import um.tds.phototds.dao.*;
 import um.tds.phototds.dominio.*;
 import umu.tds.fotos.ComponenteCargadorFotos;
 import umu.tds.fotos.Fotos;
@@ -21,21 +18,17 @@ public enum Controlador implements FotosListener{
 	INSTANCE;// Singleton
 
 	// Constantes
-	public static final DateTimeFormatter HUMAN_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+	public static final DateTimeFormatter HUMAN_FORMATTER = 
+			DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 	public static final int PRECIO_PREMIUM = 5;// 5€
 
 	// Atributos
 	private Usuario usuario;
-	private FactoriaDAO factoria;
 
 	// Contructor privado (singleton)
 	private Controlador() {
-		try {
-			factoria = FactoriaDAO.getInstancia();
-			ComponenteCargadorFotos.INSTANCE.addFotoListener(this);
-		} catch (DAOException e) {
-			e.printStackTrace();
-		}
+		//Nos añadimos a la lista de oyentes del cargador Fotos
+		ComponenteCargadorFotos.INSTANCE.addFotoListener(this);
 	}
 
 	// Getters & Setters
@@ -174,50 +167,37 @@ public enum Controlador implements FotosListener{
 
 	public boolean registerUser(String username, String nombre, String email, String cont, String fechN,
 			Optional<String> fotoPerfil, Optional<String> presentacion) {
-		Optional<Usuario> optUser = RepoUsuarios.INSTANCE.findUsuario(username);
-		if (optUser.isPresent()) {
-			return false;
-		}
 		// Creamos el usuario en el dominio
 		Usuario u = new Usuario(username, nombre, email, cont, fechN, fotoPerfil, presentacion);
-
-		// Añadimos al usuario al servidor de Persistencia
-		UsuarioDAO daoUser = factoria.getUsuarioDAO();
-		daoUser.create(u);
-		RepoUsuarios.INSTANCE.addUsuario(u);
-		return true;
+		return RepoUsuarios.INSTANCE.registrarUsuario(u);
 	}
 
 	public void updateUser(Optional<String> password, Optional<String> fotoPerfil, Optional<String> presentacion) {
-		if (password.isPresent())
-			usuario.setPassword(password.get());
-		if (fotoPerfil.isPresent())
-			usuario.setFotoPerfil(fotoPerfil.get());
-		if (presentacion.isPresent())
-			usuario.setPresentacion(presentacion.get());
-
-		factoria.getUsuarioDAO().update(usuario);
+		RepoUsuarios.INSTANCE.updateUser(this.usuario, password, fotoPerfil, presentacion);
 	}
 
 	public void seguirUsuario(String username) {
 		RepoUsuarios.INSTANCE.seguirUsuario(this.usuario, username);
 	}
 
-	public boolean addFoto(String path, String title, String desc) {
+	public void addFoto(String path, String title, String desc) {
 		Publicacion p = new Foto(this.usuario, title, desc, path);
-		PublicacionDAO daoFoto = factoria.getPublicacionDAO();
-		daoFoto.create(p);
-		RepoPublicaciones.INSTANCE.addPublicacion(p);
+		RepoPublicaciones.INSTANCE.addFoto(usuario, p);
 		RepoUsuarios.INSTANCE.addPublicacion(usuario, p);
-		factoria.getUsuarioDAO().update(usuario);
-		return true;
+	}
+	
+	public void addFoto(Publicacion p) {
+		RepoPublicaciones.INSTANCE.addFoto(usuario, p);
+		RepoUsuarios.INSTANCE.addPublicacion(usuario, p);
 	}
 	
 	public void addAlbum(String titulo, String descripcion, List<ComunicacionConGUI> comList) {
-		Publicacion p = new Album(usuario, titulo, descripcion, comList);
-		PublicacionDAO daoAlbum = factoria.getPublicacionDAO();
-		daoAlbum.create(p);
-		RepoPublicaciones.INSTANCE.addPublicacion(p);
+		List<Foto> fotosAlbum = new LinkedList<>();
+		for (ComunicacionConGUI c : comList) {
+			fotosAlbum.add(new Foto(usuario, c.getTitulo(), c.getDescripcion(), c.getPathFoto()));
+		}
+		Publicacion p = new Album(usuario, titulo, descripcion, fotosAlbum);
+		RepoPublicaciones.INSTANCE.addAlbum(usuario, p);
 		RepoUsuarios.INSTANCE.addPublicacion(usuario, p);
 	}
 
@@ -252,8 +232,7 @@ public enum Controlador implements FotosListener{
 
 	public List<ComunicacionConGUI> getTopMeGustasUsuarioActual() {
 		List<ComunicacionConGUI> comList = new LinkedList<>();
-		List<Foto> fotos = usuario.getFotosPerfil().stream().sorted((o1, o2) -> Integer.compare(o2.getMeGustas(), o1.getMeGustas()))
-				.limit(10).collect(Collectors.toList());
+		List<Foto> fotos = usuario.getTopMG();
 
 		for(Foto f : fotos) {
 			ComGUIBuilder b = new ComGUIBuilder();
@@ -266,7 +245,7 @@ public enum Controlador implements FotosListener{
 
 	public void setUsuarioActualPremium() {
 		usuario.setPremium(true);
-		factoria.getUsuarioDAO().update(usuario);
+		RepoUsuarios.INSTANCE.updateUser(usuario);
 	}
 
 	public void deletePublicacion(int idPublicacion) {
@@ -284,7 +263,7 @@ public enum Controlador implements FotosListener{
 		default:
 			return PRECIO_PREMIUM;
 		}
-		return usuario.aplicarDescuento();
+		return usuario.getPrecio();
 	}
 	
 	public void crearExcelSeguidores() {
@@ -308,39 +287,42 @@ public enum Controlador implements FotosListener{
 	@Override
 	public void notificaNuevasFotos(FotosEvent ev) {
 		Fotos fotos = ev.getFotos();
-
 		
 		//Metemos las fotos en el usuario
 		for(umu.tds.fotos.Foto f : fotos.getFotos()) {
 			Publicacion p = new Foto(usuario, f.getTitulo(), f.getDescripcion(), f.getPath());
+			this.addFoto(p);
 			f.getHashTags().stream().forEach(h -> h.getHashTag().stream()
 					.forEach(ha -> p.addHashTag(ha)));
-			
-			PublicacionDAO daoFoto = factoria.getPublicacionDAO();
-			daoFoto.create(p);
-			RepoPublicaciones.INSTANCE.addPublicacion(p);
-			RepoUsuarios.INSTANCE.addPublicacion(usuario, p);
-			factoria.getUsuarioDAO().update(usuario);
 		}
 	}
 
 	public List<ComunicacionConGUI> lookFor(String txt) {
-		List<ComunicacionConGUI> r = new LinkedList<>();
 		if (txt.startsWith("#")) {
-			List<Publicacion> l = RepoPublicaciones.INSTANCE.lookForPublicacion(txt);
-			if (l.isEmpty())
-				return Collections.emptyList();
-			for (Publicacion p : l) {
-				ComGUIBuilder b = new ComGUIBuilder();
-				b.buildNumSeguidoresUsuario(p.getUsuario().getNumSeguidores());
-				b.buildUsername(p.getUsuario().getUsername());
-				b.buildHashtag(p.getHashtagContaining(txt));
-				b.buildMode(ComunicacionConGUI.MODE_BUSQ_HASHTAGS);
-				r.add(b.getResult());
-			}
-			return r;
+			return buscarPublicacion(txt);
 		}
-		List<Usuario> users = RepoUsuarios.INSTANCE.lookForUser(txt);
+		return buscarUsuario(txt);
+	}
+	
+	private List<ComunicacionConGUI> buscarPublicacion(String h) {
+		List<ComunicacionConGUI> r = new LinkedList<>();
+		List<Publicacion> l = RepoPublicaciones.INSTANCE.lookForPublicacion(h);
+		if (l.isEmpty())
+			return Collections.emptyList();
+		for (Publicacion p : l) {
+			ComGUIBuilder b = new ComGUIBuilder();
+			b.buildNumSeguidoresUsuario(p.getUsuario().getNumSeguidores());
+			b.buildUsername(p.getUsuario().getUsername());
+			b.buildHashtag(p.getHashtagContaining(h));
+			b.buildMode(ComunicacionConGUI.MODE_BUSQ_HASHTAGS);
+			r.add(b.getResult());
+		}
+		return r;
+	}
+	
+	private List<ComunicacionConGUI> buscarUsuario(String user){
+		List<ComunicacionConGUI> r = new LinkedList<>();
+		List<Usuario> users = RepoUsuarios.INSTANCE.lookForUser(user);
 		if (users.isEmpty())
 			return Collections.emptyList();
 		users.remove(this.usuario);

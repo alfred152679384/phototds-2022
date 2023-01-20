@@ -9,6 +9,7 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 
 import um.tds.phototds.controlador.ComunicacionConGUI;
@@ -94,8 +95,10 @@ public class ShowAlbumGUI extends JDialog {
 			JPanel panelDescAlbum = new JPanel();
 			panelNorte.add(panelDescAlbum);
 			{
-				JLabel lblDescAlbum = new JLabel(this.album.getDescripcion());
-				panelDescAlbum.add(lblDescAlbum);
+				JTextArea txtDescAlbum = new JTextArea(this.album.getDescripcion());
+				txtDescAlbum.setBackground(new Color(240,240,240));
+				txtDescAlbum.setEditable(false);
+				panelDescAlbum.add(txtDescAlbum);
 			}
 		}
 		{

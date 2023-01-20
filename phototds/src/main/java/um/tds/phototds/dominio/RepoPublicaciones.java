@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import um.tds.phototds.controlador.Controlador;
 import um.tds.phototds.dao.DAOException;
 import um.tds.phototds.dao.FactoriaDAO;
+import um.tds.phototds.dao.PublicacionDAO;
 
 public enum RepoPublicaciones {
 	INSTANCE; // Singleton
@@ -73,6 +74,19 @@ public enum RepoPublicaciones {
 		Album a = (Album) this.publicacionesPorId.get(idAlbum);
 		a.addFotos(fList);
 		factoria.getPublicacionDAO().addFotosAlbum(idAlbum, fList);
+	}
+	
+	public void addFoto(Usuario usuario, Publicacion p) {
+		PublicacionDAO daoFoto = factoria.getPublicacionDAO();
+		daoFoto.create(p);
+		this.addPublicacion(p);
+		factoria.getUsuarioDAO().update(usuario);
+	}
+	
+	public void addAlbum(Usuario usuario, Publicacion p) {
+		PublicacionDAO daoAlbum = factoria.getPublicacionDAO();
+		daoAlbum.create(p);
+		this.addPublicacion(p);
 	}
 
 	public void cargarPublicacionesUsuarios() {

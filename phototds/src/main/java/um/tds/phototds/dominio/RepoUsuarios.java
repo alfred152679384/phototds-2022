@@ -14,15 +14,16 @@ import java.util.stream.Collectors;
 import um.tds.phototds.dao.*;
 
 public enum RepoUsuarios {
-	INSTANCE;//Singleton
-	//Atributos
+	INSTANCE;// Singleton
+	// Atributos
+
 	private FactoriaDAO factoria;
-	private HashMap<Integer, Usuario> usuariosPorID; 
+	private HashMap<Integer, Usuario> usuariosPorID;
 	private HashMap<String, Usuario> usuariosPorLogin;
 	private HashMap<String, Usuario> usuariosPorEmail;
 
-	//Contstructor privado (singleton)
-	private RepoUsuarios(){
+	// Contstructor privado (singleton)
+	private RepoUsuarios() {
 		usuariosPorID = new HashMap<Integer, Usuario>();
 		usuariosPorLogin = new HashMap<String, Usuario>();
 		usuariosPorEmail = new HashMap<String, Usuario>();
@@ -44,98 +45,120 @@ public enum RepoUsuarios {
 			usuariosPorLogin.put(usuario.getUsername(), usuario);
 		}
 	}
-	
-	//Getters & Setters
-	public List<Usuario> getUsuariosRegistrados(){
+
+	// Getters & Setters
+	public List<Usuario> getUsuariosRegistrados() {
 		return usuariosPorID.values().stream().collect(Collectors.toList());
-	}	
-	
+	}
+
 	public String getFotoPerfilUsuario(String username) {
 		return this.usuariosPorLogin.get(username).getFotoPerfil();
 	}
-	
+
 	public String getCorreoUsuario(String username) {
 		return this.usuariosPorLogin.get(username).getEmail();
 	}
-	
+
 	public int getNumPublicacionesUsuario(String username) {
 		return this.usuariosPorLogin.get(username).getNumPublicaciones();
 	}
-	
+
 	public int getNumSeguidores(String username) {
 		return this.usuariosPorLogin.get(username).getNumSeguidores();
 	}
-	
+
 	public int getNumSeguidos(String username) {
 		return this.usuariosPorLogin.get(username).getNumSeguidos();
 	}
-	
+
 	public String getNombreUsuario(String username) {
 		return this.usuariosPorLogin.get(username).getNombre();
 	}
-	
-	public List<Foto> getFotosPerfil(String username){
+
+	public List<Foto> getFotosPerfil(String username) {
 		return usuariosPorLogin.get(username).getFotosPerfil();
 	}
-	
-	public List<Album> getAlbumesPerfil(String username){
+
+	public List<Album> getAlbumesPerfil(String username) {
 		return usuariosPorLogin.get(username).getAlbumesPerfil();
 	}
-	
-	//Funcionalidad
+
+	// Funcionalidad
 	public Optional<Usuario> findUsuario(String username) {
 		return Optional.ofNullable(usuariosPorLogin.get(username));
 	}
+
+	public boolean registrarUsuario(Usuario u) {
+		if (this.usuariosPorLogin.containsKey(u.getUsername())) {
+			return false;
+		}
+		// Añadimos al usuario al servidor de Persistencia
+		UsuarioDAO daoUser = factoria.getUsuarioDAO();
+		daoUser.create(u);
+		RepoUsuarios.INSTANCE.addUsuario(u);
+		return true;
+	}
+
+	public void updateUser(Usuario usuario, Optional<String> password, Optional<String> fotoPerfil,
+			Optional<String> presentacion) {
+		if (password.isPresent())
+			usuario.setPassword(password.get());
+		if (fotoPerfil.isPresent())
+			usuario.setFotoPerfil(fotoPerfil.get());
+		if (presentacion.isPresent())
+			usuario.setPresentacion(presentacion.get());
+
+		factoria.getUsuarioDAO().update(usuario);
+	}
 	
+	public void updateUser(Usuario usuario) {
+		factoria.getUsuarioDAO().update(usuario);
+	}
+
 	public void seguirUsuario(Usuario actualUser, String seguirUser) {
 		Usuario seguido = this.usuariosPorLogin.get(seguirUser);
 		actualUser.seguirUsuario(seguido);
 		seguido.addseguidor(actualUser);
-		
-		//Actualizar en persistencia
+
+		// Actualizar en persistencia
 		factoria.getUsuarioDAO().update(actualUser);
 		factoria.getUsuarioDAO().update(seguido);
 	}
-	
-	public List<Usuario> lookForUser(String txt){
+
+	public List<Usuario> lookForUser(String txt) {
 		String aux = txt.toLowerCase();
 		List<Usuario> list;
-		//Probamos con el username
-		list = usuariosPorID.values().stream()
-				.filter(u -> u.getUsername().toLowerCase().contains(aux))
+		// Probamos con el username
+		list = usuariosPorID.values().stream().filter(u -> u.getUsername().toLowerCase().contains(aux))
 				.collect(Collectors.toList());
 
-		//Ahora probamos con el nombre propio
-		if(list.isEmpty()) {
-			list = usuariosPorID.values().stream()
-					.filter(u -> u.getNombre().toLowerCase().contains(aux))
+		// Ahora probamos con el nombre propio
+		if (list.isEmpty()) {
+			list = usuariosPorID.values().stream().filter(u -> u.getNombre().toLowerCase().contains(aux))
 					.collect(Collectors.toList());
 		}
 
-		//Probamos por ultimo con el email
-		if(list.isEmpty()) {
-			list = usuariosPorID.values().stream()
-					.filter(u -> u.getNombre().toLowerCase().contains(aux))
+		// Probamos por ultimo con el email
+		if (list.isEmpty()) {
+			list = usuariosPorID.values().stream().filter(u -> u.getNombre().toLowerCase().contains(aux))
 					.collect(Collectors.toList());
 		}
 		return list;
 	}
-	
+
 	public void cargarNotificaciones() {
-		this.usuariosPorID.values().stream()
-			.forEach(u -> u.cargarNotificaciones());
+		this.usuariosPorID.values().stream().forEach(u -> u.cargarNotificaciones());
 	}
-	
-	public List<Notificacion> getNotificaciones(Usuario u){
+
+	public List<Notificacion> getNotificaciones(Usuario u) {
 		List<Notificacion> notifList = u.getNotificaciones();
 		factoria.getUsuarioDAO().update(u);
 		return notifList;
 	}
-	
+
 	public void addPublicacion(Usuario usuario, Publicacion p) {
 		usuario.addPublicacion(p);
-		usuario.getSeguidores().stream()
-			.forEach(s -> factoria.getUsuarioDAO().update(s));
+		usuario.getSeguidores().stream().forEach(s -> factoria.getUsuarioDAO().update(s));
 	}
 
 	public Optional<Usuario> findUsuarioEmail(String email) {
@@ -155,6 +178,5 @@ public enum RepoUsuarios {
 		usuariosPorID.remove(usuario.getId());
 		usuariosPorLogin.remove(usuario.getUsername());
 	}
-
 
 }

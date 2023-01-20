@@ -344,7 +344,7 @@ public class PrincipalGUI extends JFrame {
 				}
 				double precio = Controlador.INSTANCE.comprobarDescuento(response);
 
-				String[] yesNo = { "Yes", "No" };
+				String[] yesNo = { "Si", "No" };
 				int havePayed = JOptionPane.showOptionDialog(framePrincipal,
 						"Precio para premium: " + precio + "€. ¿Desea realizar el pago?", "Pagar",
 						JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, yesNo, yesNo[0]);

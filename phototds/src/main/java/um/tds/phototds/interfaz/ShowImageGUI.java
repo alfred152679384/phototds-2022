@@ -40,7 +40,6 @@ public class ShowImageGUI extends JDialog {
 	private File imageFile;
 	private JTextArea textTitulo;
 	private JTextArea textDesc;
-	private ImageIcon iconImage;
 	private ComunicacionConGUI com;
 	private int mode;
 	private boolean ok;
@@ -240,6 +239,10 @@ public class ShowImageGUI extends JDialog {
 	
 	public String getDescripcion() {
 		return this.textDesc.getText();
+	}
+	
+	public boolean getOK() {
+		return this.ok;
 	}
 
 	private void setProp(double[] size) {// SetProporcion

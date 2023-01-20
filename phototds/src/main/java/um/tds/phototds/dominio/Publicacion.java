@@ -26,7 +26,7 @@ public abstract class Publicacion implements Comparable<Publicacion> {
 	private Usuario user;
 	private LocalDateTime fecha;
 	private String descripcion;
-	private int meGustas;
+	protected int meGustas;
 	private LinkedList<String> hashtags;
 	private LinkedList<Comentario> comentarios;
 
@@ -130,9 +130,8 @@ public abstract class Publicacion implements Comparable<Publicacion> {
 		return true;
 	}
 	
-	public void darMeGusta() {
-		this.meGustas++;
-	}
+	//Cada hijo da me gusta de una manera distinta
+	public abstract void darMeGusta();
 	
 	protected List<String> detectarHashtags(String s) {
 		List<String> list = new LinkedList<>();

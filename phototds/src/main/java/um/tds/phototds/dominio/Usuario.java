@@ -1,21 +1,13 @@
 package um.tds.phototds.dominio;
 
-import static org.junit.Assert.assertEquals;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import java.util.Comparator;
 
 import um.tds.phototds.controlador.Controlador;
 
@@ -241,6 +233,11 @@ public class Usuario implements NotificacionListener {
 		this.notificaciones.clear();
 		return notifs;
 	}
+	
+	public List<Foto> getTopMG(){
+		return this.getFotosPerfil().stream().sorted((o1, o2) -> Integer.compare(o2.getMeGustas(), o1.getMeGustas()))
+				.limit(10).collect(Collectors.toList());
+	}
 
 	// Funcionalidad
 	public void addPublicacion(Publicacion p) {
@@ -296,7 +293,7 @@ public class Usuario implements NotificacionListener {
 		}
 	}
 
-	public double aplicarDescuento() {
+	public double getPrecio() {
 		return Controlador.PRECIO_PREMIUM * (1-descuentoEstrategia.aplicarDescuento());
 	}
 

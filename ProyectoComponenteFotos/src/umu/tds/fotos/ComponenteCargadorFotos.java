@@ -1,20 +1,14 @@
 package umu.tds.fotos;
 
-import java.io.File;
 import java.util.Vector;
 
-public enum ComponenteCargadorFotos implements IBuscadorFotos {
+public enum ComponenteCargadorFotos {
 	INSTANCE;
 	private Vector<FotosListener> fListener;	
 	private  Fotos fotos;
 	
 	private ComponenteCargadorFotos() {
 		fListener = new Vector<>();
-	}
-	
-	@Override
-	public Fotos nuevasFotos() {
-		return this.fotos;
 	}
 	
 	public synchronized void addFotoListener(FotosListener fl) {
@@ -38,7 +32,4 @@ public enum ComponenteCargadorFotos implements IBuscadorFotos {
 		}
 		v.stream().forEach(f -> f.notificaNuevasFotos(ev));		
 	}
-	
-	
-
 }
