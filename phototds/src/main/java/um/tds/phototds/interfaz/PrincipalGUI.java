@@ -605,10 +605,6 @@ public class PrincipalGUI extends JFrame {
 		scrollAlbumes.getVerticalScrollBar().setUnitIncrement(DEFAULT_SCROLL);
 		scrollAlbumes.getVerticalScrollBar().setValue(0);
 		panelFotosPerfil.add(scrollAlbumes, BorderLayout.CENTER);
-		// if (Controlador.INSTANCE.getUsuarioActual().equals(username) &&
-		// this.panelAlbumesPerfil.isEmpty()) {
-		// this.panelFotosPerfil = Optional.of(panelFotos);
-		// }
 	}
 
 	private void addManejadorBtnSeguirUsuario(JButton btn, String username) {
@@ -625,7 +621,6 @@ public class PrincipalGUI extends JFrame {
 			RegisterGUI w = new RegisterGUI(framePrincipal, RegisterGUI.MODE_UPDATE);
 			w.setVisible(true);
 			if (w.getOk()) {
-				// this.panelFotosCentral = Optional.empty();
 				panelCentral.removeAll();
 				cargarPerfilUsuario(Controlador.INSTANCE.getUsuarioActual());
 				recargarVentana();
@@ -634,14 +629,6 @@ public class PrincipalGUI extends JFrame {
 	}
 
 	private void cargarFotosPerfil(String username) {
-		// Carga rápida
-		// if (Controlador.INSTANCE.getUsuarioActual().equals(username) &&
-		// this.panelFotosPerfil.isPresent()) {
-		// JPanel panelFotosGuardadas = this.panelFotosPerfil.get();
-		// panelCentral.add(panelFotosGuardadas, BorderLayout.CENTER);
-		// return;
-		// }
-
 		List<ComunicacionConGUI> aux = Controlador.INSTANCE.getFotosPerfil(username);
 		ArrayList<ComunicacionConGUI> fotos = new ArrayList<>(aux);
 		DefaultListModel<ImageIcon> model = new DefaultListModel<>();
@@ -661,10 +648,6 @@ public class PrincipalGUI extends JFrame {
 		scrollFotos.getVerticalScrollBar().setUnitIncrement(DEFAULT_SCROLL);
 		scrollFotos.getVerticalScrollBar().setValue(0);
 		panelFotosPerfil.add(scrollFotos, BorderLayout.CENTER);
-		// if (Controlador.INSTANCE.getUsuarioActual().equals(username) &&
-		// this.panelFotosPerfil.isEmpty()) {
-		// this.panelFotosPerfil = Optional.of(panelFotos);
-		// }
 	}
 
 	private void cargarImagenesModelo(ArrayList<ComunicacionConGUI> publish, DefaultListModel<ImageIcon> model) {
@@ -886,7 +869,6 @@ public class PrincipalGUI extends JFrame {
 			panelListaFotos.add(new JPanel());
 			padding--;
 		}
-		// this.panelFotosCentral = Optional.of(panelListaFotos);
 		return panelListaFotos;
 	}
 
