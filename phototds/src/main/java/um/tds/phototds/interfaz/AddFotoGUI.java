@@ -7,9 +7,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import um.tds.phototds.controlador.ComGUIBuilder;
-import um.tds.phototds.controlador.ComunicacionConGUI;
-
 import javax.swing.BoxLayout;
 import java.awt.Font;
 import java.awt.datatransfer.DataFlavor;
@@ -35,7 +32,9 @@ public class AddFotoGUI extends JDialog {// Añadir fotos por drag and drop o de
 	private JFrame owner;
 	private boolean type;
 	private int mode;
-	private List<ComunicacionConGUI> comList;
+	private List<String> listTitulo;
+	private List<String> listDesc;
+	private List<String> listPath;
 
 	/**
 	 * Constructor para añadir fotos 
@@ -47,6 +46,9 @@ public class AddFotoGUI extends JDialog {// Añadir fotos por drag and drop o de
 		this.mode = MODE_FOTO;
 		this.type = type;
 		this.owner = owner;
+		this.listTitulo = new LinkedList<>();
+		this.listDesc = new LinkedList<>();
+		this.listPath = new LinkedList<>();
 		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setResizable(false);
 		setBounds(100, 100, 400, 300);
@@ -64,7 +66,9 @@ public class AddFotoGUI extends JDialog {// Añadir fotos por drag and drop o de
 		if (mode == MODE_ALBUM)
 			this.setTitle("Añadir Album");
 		this.owner = owner;
-		this.comList = new LinkedList<>();
+		this.listTitulo = new LinkedList<>();
+		this.listDesc = new LinkedList<>();
+		this.listPath = new LinkedList<>();
 		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setResizable(false);
 		setBounds(100, 100, 400, 300);
@@ -104,12 +108,9 @@ public class AddFotoGUI extends JDialog {// Añadir fotos por drag and drop o de
 				if (mode == MODE_ALBUM) {
 					ShowImageGUI w = new ShowImageGUI(this.owner, f, ShowImageGUI.MODE_ALBUM);
 					w.setVisible(true);
-					comList = new LinkedList<>();
-					ComGUIBuilder b = new ComGUIBuilder();
-					b.buildPathFoto(f.getAbsolutePath());
-					b.buildTitulo(w.getTitulo());
-					b.buildDescripcion(w.getDescripcion());
-					comList.add(b.getResult());
+					this.listTitulo.add(w.getTitulo());
+					this.listDesc.add(w.getTitulo());
+					this.listPath.add(f.getAbsolutePath());
 				}
 				owner.dispose();
 			}
@@ -138,11 +139,9 @@ public class AddFotoGUI extends JDialog {// Añadir fotos por drag and drop o de
 						for (File f : droppedFiles) {
 							ShowImageGUI w = new ShowImageGUI(owner, f, ShowImageGUI.MODE_ALBUM);
 							w.setVisible(true);
-							ComGUIBuilder b = new ComGUIBuilder();
-							b.buildPathFoto(f.getAbsolutePath());
-							b.buildTitulo(w.getTitulo());
-							b.buildDescripcion(w.getDescripcion());
-							comList.add(b.getResult());
+							listTitulo.add(w.getTitulo());
+							listDesc.add(w.getDescripcion());
+							listPath.add(f.getAbsolutePath());
 							AddFotoGUI.this.dispose();
 						}
 					}
@@ -158,7 +157,15 @@ public class AddFotoGUI extends JDialog {// Añadir fotos por drag and drop o de
 		w.setVisible(true);
 	}
 
-	public List<ComunicacionConGUI> getListFotos() {
-		return Collections.unmodifiableList(this.comList);
+	public List<String> getListTitulos() {
+		return Collections.unmodifiableList(this.listTitulo);
+	}
+	
+	public List<String> getListDescripciones(){
+		return Collections.unmodifiableList(this.listDesc);
+	}
+	
+	public List<String> getListPaths(){
+		return Collections.unmodifiableList(this.listPath);
 	}
 }

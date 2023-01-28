@@ -33,8 +33,8 @@ public class Album extends Publicacion {
 		return true;
 	}
 	
-	public void addFotos(List<Foto> fList) {
-		listaFotos.addAll(fList);
+	public void addFoto(Foto f) {
+		listaFotos.add(f);
 	}
 	
 	@Override

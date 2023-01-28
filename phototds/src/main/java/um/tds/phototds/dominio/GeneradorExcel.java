@@ -22,7 +22,7 @@ public class GeneradorExcel {
 	// Constructor
 	public GeneradorExcel() {
 		wb = new XSSFWorkbook();
-		String user = Controlador.INSTANCE.getUsuarioActual();
+		String user = Controlador.INSTANCE.getUsuarioActual().getUsername();
 		excelPath = System.getProperty("user.home") + "/Documents/seguidores_" + user + ".xlsx";
 		try {
 			fileout = new FileOutputStream(this.excelPath);

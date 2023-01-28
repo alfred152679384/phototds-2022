@@ -94,11 +94,11 @@ public abstract class Publicacion implements Comparable<Publicacion> {
 	}
 	
 	public List<String> getHashtags(){
-		return Collections.unmodifiableList(this.hashtags);
+		return this.hashtags;
 	}
 	
 	public List<Comentario> getComentarios() {
-		return Collections.unmodifiableList(this.comentarios);
+		return this.comentarios;
 	}
 
 	public String getComentariosDAO() {
@@ -122,11 +122,11 @@ public abstract class Publicacion implements Comparable<Publicacion> {
 
 	// Funcionalidad
 	public void addHashTag(String h) {
-		this.hashtags.add("#"+h);
+		this.hashtags.add(AlMOHADILLA+h);
 	}
 	
-	public boolean addComentario(Comentario c) {
-		this.comentarios.add(c);
+	public boolean addComentario(Usuario autor, String coment) {
+		this.comentarios.add(new Comentario(autor, coment));
 		return true;
 	}
 	

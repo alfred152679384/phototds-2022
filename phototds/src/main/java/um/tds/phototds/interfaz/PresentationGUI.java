@@ -89,8 +89,11 @@ public class PresentationGUI extends JDialog {
 				txtPresentacion.setBorder(new LineBorder(Color.black, 1));
 				txtPresentacion.setWrapStyleWord(true);
 				txtPresentacion.setLineWrap(true);
-				if(mode == MODE_UPDATE)
-					txtPresentacion.setText(Controlador.INSTANCE.getPresentacionUsuarioActual());
+				if(mode == MODE_UPDATE) {
+					Optional<String> pres = Controlador.INSTANCE.getUsuarioActual().getPresentacion();
+					if(pres.isPresent())
+					txtPresentacion.setText(pres.get());
+				}
 			}
 			
 			JScrollPane sc = new JScrollPane(txtPresentacion);
@@ -99,19 +102,19 @@ public class PresentationGUI extends JDialog {
 		}
 		
 		{//Panel sur: botones
-			JPanel buttonPane = new JPanel();
-			buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
-			getContentPane().add(buttonPane, BorderLayout.SOUTH);
+			JPanel buttonPanel = new JPanel();
+			buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+			getContentPane().add(buttonPanel, BorderLayout.SOUTH);
 			{
 				JButton okButton = new JButton("OK");
 				addManejadorBtnOk(okButton);
-				buttonPane.add(okButton);
+				buttonPanel.add(okButton);
 				getRootPane().setDefaultButton(okButton);
 			}
 			{
 				JButton cancelButton = new JButton("Cancel");
 				addManejadorBtnCancel(cancelButton);
-				buttonPane.add(cancelButton);
+				buttonPanel.add(cancelButton);
 			}
 		}
 	}

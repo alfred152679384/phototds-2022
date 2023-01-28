@@ -19,7 +19,7 @@ public class GeneradorPDF {
 	private Document doc;
 	
 	public GeneradorPDF() {
-		String username = Controlador.INSTANCE.getUsuarioActual();
+		String username = Controlador.INSTANCE.getUsuarioActual().getUsername();
 		String path = System.getProperty("user.home") + "/Documents/seguidores_" + username + ".pdf";
 		try {
 			this.pdf = new PdfDocument(new PdfWriter(path));

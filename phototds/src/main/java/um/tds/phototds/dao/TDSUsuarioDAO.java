@@ -1,9 +1,11 @@
 package um.tds.phototds.dao;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,6 +34,8 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 	private static final String SEGUIDORES = "listaSeguidores";
 	private static final String SEGUIDOS = "listaSeguidos";
 	private static final String NOTIFICACIONES = "listaNotificaciones";
+	
+	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 	private ServicioPersistencia servPersistencia;
 
@@ -41,6 +45,8 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		
 	}
 
 	private Usuario entidadToUsuario(Entidad eUsuario) {
@@ -49,7 +55,15 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 		String nombre = servPersistencia.recuperarPropiedadEntidad(eUsuario, NOMBRE);
 		String email = servPersistencia.recuperarPropiedadEntidad(eUsuario, EMAIL);
 		String password = servPersistencia.recuperarPropiedadEntidad(eUsuario, PASSWORD);
+		
 		String fechaNacimiento = servPersistencia.recuperarPropiedadEntidad(eUsuario, FECHA_NACIMIENTO);
+		Date fechNac;
+		try {
+			fechNac = dateFormat.parse(fechaNacimiento);
+		}catch(ParseException e) {
+			System.err.println("Fallo parser fecha nacimiento usuario "+username);
+		}
+		
 		String fotoPerfil = servPersistencia.recuperarPropiedadEntidad(eUsuario, FOTO_PERFIL);
 		String presentacion = servPersistencia.recuperarPropiedadEntidad(eUsuario, PRESENTACION);
 		String isPremium = servPersistencia.recuperarPropiedadEntidad(eUsuario, PREMIUM);

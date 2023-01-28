@@ -109,11 +109,14 @@ public class RegisterGUI extends JDialog {
 
 		// --->Elementos del panel sur
 		panelSur.setLayout(new FlowLayout(FlowLayout.RIGHT));
+		
 		JButton btnOK = new JButton("OK");
 		addManejadorBtnOK(btnOK);
+		getRootPane().setDefaultButton(btnOK);
+		panelSur.add(btnOK);
+
 		JButton btnCancel = new JButton("Cancel");
 		addManejadorBtnCancel(btnCancel);
-		panelSur.add(btnOK);
 		panelSur.add(btnCancel);
 	}
 
@@ -135,7 +138,8 @@ public class RegisterGUI extends JDialog {
 
 		JPanel panelSubtitulo = new JPanel();
 		panelSubtitulo.setBorder(new EmptyBorder(10, 10, 0, 10));
-		JTextArea txtSubtitulo = new JTextArea("Si te registras podrás compartir fotos y ver las fotos de tus amigos");
+		JTextArea txtSubtitulo = new JTextArea("Si te registras podrás compartir fotos"
+				+ " y ver las fotos de tus amigos");
 		txtSubtitulo.setEditable(false);
 		txtSubtitulo.setBackground(new Color(240, 240, 240));
 		txtSubtitulo.setFont(new Font("Tahoma", Font.PLAIN, 14));

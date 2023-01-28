@@ -52,7 +52,8 @@ public class CrearAlbumGUI extends JDialog {
 	private void crearPanelNorte() {
 		JPanel panelNorte = new JPanel();
 		panelNorte.setBorder(
-				new CompoundBorder(new EmptyBorder(5, 5, 5, 5), new EtchedBorder(EtchedBorder.RAISED, null, null)));
+				new CompoundBorder(new EmptyBorder(5, 5, 5, 5), 
+						new EtchedBorder(EtchedBorder.RAISED, null, null)));
 		getContentPane().add(panelNorte, BorderLayout.NORTH);
 		{
 			JLabel lblTituloPantalla = new JLabel("Crea un nuevo Álbum");
@@ -117,34 +118,36 @@ public class CrearAlbumGUI extends JDialog {
 			panelSur.add(cancelButton);
 		}
 	}
-	
+
 	private void addManejadorBtnOK(JButton okButton) {
 		okButton.addActionListener(ev -> {
-			//No añade título
+			// No añade título
 			String titulo = txtTitulo.getText();
 			if (titulo.equals("")) {
-				JOptionPane.showMessageDialog(CrearAlbumGUI.this, "No ha introducido un título", "Error",
+				JOptionPane.showMessageDialog(CrearAlbumGUI.this, "No ha introducido un "
+						+ "título", "Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			// Titulo ya existe
+			if (Controlador.INSTANCE.comprobarTituloAlbum(titulo)) {
+				JOptionPane.showMessageDialog(CrearAlbumGUI.this, "Ya existe una publicación"
+						+ " con ese título", "Error",
 						JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			//Titulo ya existe
-			if(Controlador.INSTANCE.comprobarTituloAlbum(titulo)) {
-				JOptionPane.showMessageDialog(CrearAlbumGUI.this, "Ya existe una publicación con ese título", "Error",
-						JOptionPane.ERROR_MESSAGE);
-				return;
-			}
-			
-			//Cogemos las fotos
+
+			// Cogemos las fotos
 			this.ok = true;
 			AddFotoGUI w = new AddFotoGUI(owner, AddFotoGUI.MODE_ALBUM);
 			w.setVisible(true);
-			Controlador.INSTANCE.addAlbum(titulo, txtDescripcion.getText(), w.getListFotos());
+			Controlador.INSTANCE.addAlbum(titulo,txtDescripcion.getText(),w.getListTitulos(),
+					w.getListDescripciones(), w.getListPaths());
 			CrearAlbumGUI.this.dispose();
 		});
 	}
-	
+
 	public boolean getOk() {
 		return this.ok;
 	}
-	
+
 }

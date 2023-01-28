@@ -11,8 +11,12 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 
-import um.tds.phototds.controlador.ComunicacionConGUI;
 import um.tds.phototds.controlador.Controlador;
+import um.tds.phototds.dominio.Album;
+import um.tds.phototds.dominio.Foto;
+import um.tds.phototds.dominio.Notificacion;
+import um.tds.phototds.dominio.Publicacion;
+import um.tds.phototds.dominio.Usuario;
 
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
@@ -41,6 +45,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.awt.GridLayout;
@@ -52,7 +57,7 @@ public class PrincipalGUI extends JFrame {
 	// Constantes
 	private static final int LUPA_SIZE = 10;
 	private static final int OPTIONS_SIZE = 15;
-	private static final int FOTO_PERFIL_SIZE = 25;
+	private static final int FOTO_PERFIL_SIZE = 20;
 	private static final int PERFIL_MODE_FOTO_PERFIL_SIZE = 100;
 	private static final int LIKE_SIZE = 25;
 	private static final int DEFAULT_X = 200;
@@ -75,6 +80,7 @@ public class PrincipalGUI extends JFrame {
 	// Atributos
 	private JFrame framePrincipal;
 	private JTextField txtBuscador;
+	private Usuario usuarioActual;
 	private boolean mostrarPerfil;
 	private boolean searchingUser;
 	private JPanel panelGeneral;
@@ -88,6 +94,7 @@ public class PrincipalGUI extends JFrame {
 	public PrincipalGUI() {
 		this.mostrarPerfil = false;
 		this.searchingUser = false;
+		this.usuarioActual = Controlador.INSTANCE.getUsuarioActual();
 		initialize();
 	}
 
@@ -95,8 +102,8 @@ public class PrincipalGUI extends JFrame {
 	public PrincipalGUI(boolean vistaPerfil) {
 		this.mostrarPerfil = vistaPerfil;
 		this.searchingUser = false;
+		this.usuarioActual = Controlador.INSTANCE.getUsuarioActual();
 		initialize();
-		cargarNotificaciones();
 	}
 
 	public void mostrarVentana() {
@@ -107,11 +114,12 @@ public class PrincipalGUI extends JFrame {
 	}
 
 	private void cargarNotificaciones() {
-		List<ComunicacionConGUI> notifs = Controlador.INSTANCE.getNotificacionesUsuarioActual();
-		for (ComunicacionConGUI n : notifs) {
+		List<Notificacion> notifs = Controlador.INSTANCE.getNotificaciones(usuarioActual);
+		for (Notificacion n : notifs) {
 			JOptionPane.showMessageDialog(framePrincipal,
-					n.getFecha().format(Controlador.HUMAN_FORMATTER) + ":\nEl usuario " + n.getUsername()
-							+ " ha realizado una publicación con título: " + n.getTitulo(),
+					n.getFechaPublicacion().format(Controlador.HUMAN_FORMATTER) + ":\nEl usuario "
+							+ n.getPublicacion().getUsuario().getUsername()
+							+ " ha realizado una publicación con título:\n" + n.getPublicacion().getTitulo(),
 					"NOTIFICACION", JOptionPane.INFORMATION_MESSAGE);
 		}
 	}
@@ -148,7 +156,7 @@ public class PrincipalGUI extends JFrame {
 		FlowLayout fl_panelBtnJavaBean = (FlowLayout) panelBtnJavaBean.getLayout();
 		fl_panelBtnJavaBean.setHgap(20);
 		panelNorte.add(panelBtnJavaBean);
-		
+
 		Luz luz = new Luz();
 		addManejadorLuz(luz);
 		panelBtnJavaBean.add(luz);
@@ -187,6 +195,7 @@ public class PrincipalGUI extends JFrame {
 			System.err.println("Excepción: Imagen Boton Lupa ");
 		}
 		addManejadorBtnLupa(btnLupa);
+		framePrincipal.getRootPane().setDefaultButton(btnLupa);
 		panelBuscador.add(btnLupa);
 
 		// Foto de Perfil y Ajustes
@@ -196,7 +205,7 @@ public class PrincipalGUI extends JFrame {
 		// Foto de Perfil
 		JButton btnFotoPerfil = new JButton("Profile");
 		try {
-			Icon i = crearBtnIcono(Controlador.INSTANCE.getFotoPerfilUsuarioActual(), FOTO_PERFIL_SIZE,
+			Icon i = crearBtnIcono(usuarioActual.getFotoPerfil(), FOTO_PERFIL_SIZE,
 					FOTO_PERFIL_SIZE);
 			btnFotoPerfil = new JButton(i);
 			btnFotoPerfil.setBackground(new Color(240, 240, 240));
@@ -218,23 +227,22 @@ public class PrincipalGUI extends JFrame {
 		panelAjustes.add(btnOptions);
 
 	}
-	
+
 	private void addManejadorLuz(Luz luz) {
-		luz.addEncendidoListener(ev ->{
+		luz.addEncendidoListener(ev -> {
 			JFileChooser fc = new JFileChooser(new File(System.getProperty("user.dir")));
 			int retVal = fc.showOpenDialog(framePrincipal);
 			if (retVal == JFileChooser.APPROVE_OPTION) {
-				if(!Controlador.INSTANCE.cargarFotosBean(fc.getSelectedFile())) {
+				if (!Controlador.INSTANCE.cargarFotosBean(fc.getSelectedFile())) {
 					JOptionPane.showMessageDialog(framePrincipal, "Debe escoger un fichero XML", "Fichero Incorrecto",
 							JOptionPane.ERROR_MESSAGE);
 					luz.setColor(Color.WHITE);
-				}
-				else luz.setColor(Color.GREEN);
+				} else
+					luz.setColor(Color.GREEN);
 				panelCentral.removeAll();
-				if(this.mostrarPerfil) {
-					cargarPerfilUsuario(Controlador.INSTANCE.getUsuarioActual());
-				}
-				else {
+				if (this.mostrarPerfil) {
+					cargarPerfilUsuario(usuarioActual);
+				} else {
 					cargarPantallaPrincipal();
 				}
 				recargarVentana();
@@ -247,8 +255,8 @@ public class PrincipalGUI extends JFrame {
 			CrearAlbumGUI w = new CrearAlbumGUI(framePrincipal);
 			w.setVisible(true);
 			if (w.getOk()) {
-				panelFotosPerfil.removeAll();
-				cargarAlbumesPerfil(Controlador.INSTANCE.getUsuarioActual());
+				panelCentral.removeAll();
+				cargarPerfilUsuario(usuarioActual);
 				recargarVentana();
 			}
 		});
@@ -319,8 +327,7 @@ public class PrincipalGUI extends JFrame {
 	}
 
 	private boolean isUsuarioPremium() {
-		boolean isPremium = Controlador.INSTANCE.isUsuarioActualPremium();
-		if (isPremium)
+		if (usuarioActual.isPremium())
 			return true;
 		JOptionPane.showMessageDialog(framePrincipal, "Usted no es un usuario premium", "No es Premium",
 				JOptionPane.ERROR_MESSAGE);
@@ -330,7 +337,7 @@ public class PrincipalGUI extends JFrame {
 	private void addManejadorItemPremium(JMenuItem itemPremium) {
 		itemPremium.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
-				if (Controlador.INSTANCE.isUsuarioActualPremium()) {
+				if (usuarioActual.isPremium()) {
 					JOptionPane.showMessageDialog(framePrincipal, "Usted ya es un usuario premium", "Ya es Premium",
 							JOptionPane.ERROR_MESSAGE);
 					return;
@@ -358,63 +365,52 @@ public class PrincipalGUI extends JFrame {
 
 	private void addManejadorBtnLupa(JButton btnLupa) {
 		btnLupa.addActionListener(ev -> {
-			if (txtBuscador.getText().equals(""))
+			String busq = txtBuscador.getText();
+			if (busq.equals(""))
 				return;
-			List<ComunicacionConGUI> c = Controlador.INSTANCE.lookFor(txtBuscador.getText());
-			if (c.isEmpty()) {
-				JOptionPane.showMessageDialog(framePrincipal, "La búsqueda no ha arrojado ningún resultado",
-						"No results", JOptionPane.ERROR_MESSAGE);
-				return;
+			if (busq.startsWith("#")) {// Búsqueda de publicacion
+				busquedaPublicacion(busq);
+
+			} else {// Busqueda de usuario
+				busquedaUsuario(busq);
 			}
-			BuscadorGUI w = new BuscadorGUI(framePrincipal, c);
-			w.setVisible(true);
-			this.searchingUser = true;
-			txtBuscador.setText("");
-			if (w.getUserSelected().equals("")) {
-				return;
-			}
-			panelCentral.removeAll();
-			cargarPerfilUsuario(w.getUserSelected());
-			recargarVentana();
 		});
 	}
 
-	private Icon crearBtnIcono(String path, int width, int height) throws IOException {
-		// Abrimos la foto original
-		BufferedImage original;
-		File fi = new File(path);
-		original = ImageIO.read(fi);
-
-		// Redimensionamos la foto al tamaño pedido
-		double[] size = new double[2];
-		size[0] = original.getWidth();
-		size[1] = original.getHeight();
-		Controlador.setProp(size, width, height);
-		Image resizedImg = original.getScaledInstance((int) size[0], (int) size[1], Image.SCALE_SMOOTH);
-
-		// Creamos botón con imagen dimensionada
-		Icon icon = new ImageIcon(resizedImg);
-		return icon;
+	private void busquedaUsuario(String busq) {
+		List<Usuario> results = Controlador.INSTANCE.buscarUsuario(busq);
+		if (results.isEmpty()) {
+			errorBusqueda();
+			return;
+		}
+		BuscadorGUI w = new BuscadorGUI(framePrincipal, results);
+		w.setVisible(true);
+		this.searchingUser = true;
+		txtBuscador.setText("");
+		panelCentral.removeAll();
+		Optional<Usuario> selected = w.getUserSelected();
+		if (selected.isEmpty())
+			return;
+		cargarPerfilUsuario(selected.get());
+		recargarVentana();
 	}
 
-	public static JLabel crearLabelFoto(String path, int width, int height) throws IOException {
-		// Cargamos foto original
-		BufferedImage foto;
-		File fi = new File(path);
-		foto = ImageIO.read(fi);
+	private void busquedaPublicacion(String busq) {
+		List<Publicacion> results = Controlador.INSTANCE.buscarPublicacion(busq);
+		if (results.isEmpty()) {
+			errorBusqueda();
+			txtBuscador.setText("");
+			return;
+		}
+		BuscadorGUI w = new BuscadorGUI(framePrincipal, results, busq);
+		w.setVisible(true);
+		txtBuscador.setText("");
+	}
 
-		// Redimensionamos
-		double[] size = new double[2];
-		size[0] = foto.getWidth(null);
-		size[1] = foto.getHeight(null);
-		Controlador.setProp(size, width, height);
-
-		// Creamos el JLabel
-		JLabel picLabel = new JLabel();
-		Image resizedImage;
-		resizedImage = foto.getScaledInstance((int) size[0], (int) size[1], Image.SCALE_SMOOTH);
-		picLabel.setIcon(new ImageIcon(resizedImage));
-		return picLabel;
+	private void errorBusqueda() {
+		JOptionPane.showMessageDialog(framePrincipal, "La búsqueda no ha arrojado ningún resultado", "No results",
+				JOptionPane.ERROR_MESSAGE);
+		return;
 	}
 
 	private void crearPanelCentral() {
@@ -446,7 +442,7 @@ public class PrincipalGUI extends JFrame {
 
 	}
 
-	private void cargarPerfilUsuario(String username) {
+	private void cargarPerfilUsuario(Usuario user) {
 		panelCentral.setLayout(new BorderLayout(0, 0));
 		// Informacion del Usuario
 		panelInfoUser = new JPanel();
@@ -459,8 +455,8 @@ public class PrincipalGUI extends JFrame {
 
 		JLabel lblFotoPerfil = new JLabel("Profile Picture");
 		try {
-			lblFotoPerfil = crearLabelFoto(Controlador.INSTANCE.getFotoPerfilUsuario(username),
-					PERFIL_MODE_FOTO_PERFIL_SIZE, PERFIL_MODE_FOTO_PERFIL_SIZE);
+			lblFotoPerfil = crearLabelFoto(user.getFotoPerfil(), PERFIL_MODE_FOTO_PERFIL_SIZE,
+					PERFIL_MODE_FOTO_PERFIL_SIZE);
 		} catch (IOException e) {
 			System.err.println("Profile picture fail");
 		}
@@ -478,7 +474,7 @@ public class PrincipalGUI extends JFrame {
 			flowLayout.setAlignment(FlowLayout.LEFT);
 			panelInfo.add(panelCorreo);
 
-			JLabel lblCorreo = new JLabel(Controlador.INSTANCE.getCorreoUsuario(username));
+			JLabel lblCorreo = new JLabel(user.getEmail());
 			panelCorreo.add(lblCorreo);
 
 			// Panel Padding
@@ -493,12 +489,18 @@ public class PrincipalGUI extends JFrame {
 				btnEditPerfil.setOpaque(true);
 				addManejadorBtnEditarPerfil(btnEditPerfil);
 				panelCorreo.add(btnEditPerfil);
-			} else {
+			} else if(!user.getSeguidores().contains(usuarioActual)){
 				JButton btnSeguir = new JButton("Seguir");
 				btnSeguir.setForeground(Color.WHITE);
 				btnSeguir.setBackground(new Color(0, 0, 255));
 				btnSeguir.setOpaque(true);
-				addManejadorBtnSeguirUsuario(btnSeguir, username);
+				addManejadorBtnSeguirUsuario(btnSeguir, user);
+				panelCorreo.add(btnSeguir);
+			} else {
+				JButton btnSeguir = new JButton("Seguido");
+				btnSeguir.setForeground(Color.WHITE);
+				btnSeguir.setBackground(new Color(0, 0, 255));
+				btnSeguir.setOpaque(true);
 				panelCorreo.add(btnSeguir);
 			}
 
@@ -509,21 +511,21 @@ public class PrincipalGUI extends JFrame {
 			panelInfo.add(panelEstadisticas);
 
 			// Numero de publicaciones
-			JLabel lblNumPublics = new JLabel(Controlador.INSTANCE.getNumPublicaciones(username) + " publicaciones");
+			JLabel lblNumPublics = new JLabel(user.getNumPublicaciones() + " publicaciones");
 			panelEstadisticas.add(lblNumPublics);
 
 			JPanel panelPadding1 = new JPanel();
 			panelEstadisticas.add(panelPadding1);
 
 			// Numero de seguidores
-			JLabel lblNumSeguidores = new JLabel(Controlador.INSTANCE.getNumSeguidores(username) + " seguidores");
+			JLabel lblNumSeguidores = new JLabel(user.getNumSeguidores() + " seguidores");
 			panelEstadisticas.add(lblNumSeguidores);
 
 			JPanel panelPadding2 = new JPanel();
 			panelEstadisticas.add(panelPadding2);
 
 			// Numero de seguidos
-			JLabel lblNumSeguidos = new JLabel(Controlador.INSTANCE.getNumSeguidos(username) + " seguidos");
+			JLabel lblNumSeguidos = new JLabel(user.getNumSeguidos() + " seguidos");
 			panelEstadisticas.add(lblNumSeguidos);
 
 			// Nombre completo del Usuario
@@ -532,7 +534,7 @@ public class PrincipalGUI extends JFrame {
 			flowLayout_2.setAlignment(FlowLayout.LEFT);
 			panelInfo.add(panelNombre);
 
-			JLabel lblNombre = new JLabel(Controlador.INSTANCE.getNombreUsuario(username));
+			JLabel lblNombre = new JLabel(user.getNombre());
 			panelNombre.add(lblNombre);
 		}
 
@@ -551,7 +553,7 @@ public class PrincipalGUI extends JFrame {
 			btnFotos.setOpaque(true);
 			btnFotos.addActionListener(ev -> {
 				panelFotosPerfil.removeAll();
-				cargarFotosPerfil(username);
+				cargarFotosPerfil(user);
 				recargarVentana();
 			});
 			panelFotoAlbumes.add(btnFotos);
@@ -561,45 +563,32 @@ public class PrincipalGUI extends JFrame {
 			btnAlbumes.setOpaque(true);
 			btnAlbumes.addActionListener(ev -> {
 				panelFotosPerfil.removeAll();
-				cargarAlbumesPerfil(username);
+				cargarAlbumesPerfil(user);
 				recargarVentana();
 			});
 			panelFotoAlbumes.add(btnAlbumes);
 		}
 
 		// Cargamos las fotos del usuario
-		cargarFotosPerfil(username);
+		cargarFotosPerfil(user);
 	}
 
-	private void cargarAlbumesPerfil(String username) {
-		// Cargamos albumes rápidamente
-		// if (Controlador.INSTANCE.getUsuarioActual().equals(username) &&
-		// this.panelAlbumesPerfil.isPresent()) {
-		// JPanel panelAlbumesGuardados = this.panelFotosPerfil.get();
-		// panelFotos.add(panelAlbumesGuardados, BorderLayout.CENTER);
-		// return;
-		// }
-
+	private void cargarAlbumesPerfil(Usuario user) {
 		// Si no estaba cargado
-		List<ComunicacionConGUI> albumes = Controlador.INSTANCE.getAlbumesPerfil(username);
-		if (albumes.isEmpty())
+		List<Publicacion> pubList = new LinkedList<>(user.getAlbumesPerfil());
+		if (pubList.isEmpty())
 			return;
 		DefaultListModel<ImageIcon> model = new DefaultListModel<>();
 		JList<ImageIcon> lista;
 
-		// Paso previo para cargar imágenes en el model
-		ArrayList<ComunicacionConGUI> comList = new ArrayList<>();
-		for (ComunicacionConGUI a : albumes) {
-			comList.add(a.getListaFotosAlbum().get(0));
-		}
-		cargarImagenesModelo(comList, model);
+		cargarImagenesModelo(new ArrayList<>(pubList), model);
 
 		lista = new JList<>(model);
 		lista.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 		lista.setVisibleRowCount(-1);
 		lista.setFixedCellWidth(ALBUM_CELL_SIZE);
 		lista.setFixedCellHeight(ALBUM_CELL_SIZE);
-		crearManejadorListaPerfil(lista, albumes, username, MODE_ALBUM);
+		crearManejadorListaPerfil(lista, pubList, MODE_ALBUM);
 
 		JScrollPane scrollAlbumes = new JScrollPane(lista);
 		scrollAlbumes.getVerticalScrollBar().setUnitIncrement(DEFAULT_SCROLL);
@@ -607,11 +596,11 @@ public class PrincipalGUI extends JFrame {
 		panelFotosPerfil.add(scrollAlbumes, BorderLayout.CENTER);
 	}
 
-	private void addManejadorBtnSeguirUsuario(JButton btn, String username) {
+	private void addManejadorBtnSeguirUsuario(JButton btn, Usuario user) {
 		btn.addActionListener(ev -> {
-			this.panelCentral.remove(panelInfoUser);
-			Controlador.INSTANCE.seguirUsuario(username);
-			cargarPerfilUsuario(username);
+			Controlador.INSTANCE.seguirUsuario(user);
+			panelCentral.removeAll();
+			cargarPerfilUsuario(user);
 			recargarVentana();
 		});
 	}
@@ -628,13 +617,12 @@ public class PrincipalGUI extends JFrame {
 		});
 	}
 
-	private void cargarFotosPerfil(String username) {
-		List<ComunicacionConGUI> aux = Controlador.INSTANCE.getFotosPerfil(username);
-		ArrayList<ComunicacionConGUI> fotos = new ArrayList<>(aux);
+	private void cargarFotosPerfil(Usuario user) {
+		List<Publicacion> fotos = new LinkedList<>(user.getFotosPerfil());
 		DefaultListModel<ImageIcon> model = new DefaultListModel<>();
 		JList<ImageIcon> lista;
 
-		cargarImagenesModelo(fotos, model);
+		cargarImagenesModelo(new ArrayList<>(fotos), model);
 
 		lista = new JList<>(model);
 		lista.setLayoutOrientation(JList.HORIZONTAL_WRAP);
@@ -642,7 +630,7 @@ public class PrincipalGUI extends JFrame {
 		lista.setFixedCellWidth(CELL_SIZE);
 		lista.setFixedCellHeight(CELL_SIZE);
 		lista.setBorder(new LineBorder(Color.black));
-		crearManejadorListaPerfil(lista, fotos, username, MODE_FOTO);
+		crearManejadorListaPerfil(lista, fotos, MODE_FOTO);
 
 		JScrollPane scrollFotos = new JScrollPane(lista);
 		scrollFotos.getVerticalScrollBar().setUnitIncrement(DEFAULT_SCROLL);
@@ -650,33 +638,7 @@ public class PrincipalGUI extends JFrame {
 		panelFotosPerfil.add(scrollFotos, BorderLayout.CENTER);
 	}
 
-	private void cargarImagenesModelo(ArrayList<ComunicacionConGUI> publish, DefaultListModel<ImageIcon> model) {
-		BufferedImage foto;
-		int cont = 0;
-		try {// Cargamos las imágenes en el modelo dimensionadas
-			for (ComunicacionConGUI f : publish) {
-				File fi = new File(f.getPathFoto());
-				foto = ImageIO.read(fi);
-
-				double[] size = new double[2];
-				size[0] = foto.getWidth(null);
-				size[1] = foto.getHeight(null);
-				Controlador.setProfileProp(size, CELL_SIZE);
-
-				Image resizedImage;
-				resizedImage = foto.getScaledInstance((int) size[0], (int) size[1], Image.SCALE_SMOOTH);
-				ImageIcon icon = new ImageIcon(resizedImage);
-
-				model.add(cont, icon);
-				cont++;
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private void crearManejadorListaPerfil(JList<ImageIcon> lista, List<ComunicacionConGUI> fotos, String username,
-			int mode) {
+	private void crearManejadorListaPerfil(JList<ImageIcon> lista, List<Publicacion> publics, int mode) {
 		lista.addMouseListener(new MouseAdapter() {
 			int index;
 
@@ -684,7 +646,7 @@ public class PrincipalGUI extends JFrame {
 				index = lista.getSelectedIndex();
 				// Opción de que se pinche con click izquierdo la foto
 				if (e.getButton() == MouseEvent.BUTTON1) {
-					mostrarPublicacion(fotos.get(index), mode);
+					mostrarPublicacion(publics.get(index), mode);
 				}
 				// Opción de que se pinche con click derecho
 				if (e.getButton() == MouseEvent.BUTTON3) {
@@ -698,18 +660,18 @@ public class PrincipalGUI extends JFrame {
 						// manejador pulsando la opción de ver foto
 						itemVerFoto.addMouseListener(new MouseAdapter() {
 							public void mousePressed(MouseEvent ev) {
-								mostrarPublicacion(fotos.get(index), mode);
+								mostrarPublicacion(publics.get(index), mode);
 							}
 						});
 						popFotoPerfil.add(itemVerFoto);
 
 						// Botón para borrar foto
-						if (Controlador.INSTANCE.getUsuarioActual().equals(fotos.get(0).getUsername())) {
+						if (publics.get(0).getUsuario().getUsername().equals(usuarioActual.getUsername())) {
 							JMenuItem itemBorrarFoto = new JMenuItem("Eliminar");
 							// manejador pulsando opción de eliminar
 							itemBorrarFoto.addMouseListener(new MouseAdapter() {
 								public void mousePressed(MouseEvent ev) {
-									borrarPublicacion(fotos.get(index).getIdPubli(), mode);
+									borrarPublicacion(publics.get(index), mode);
 								}
 							});
 							popFotoPerfil.add(itemBorrarFoto);
@@ -722,30 +684,31 @@ public class PrincipalGUI extends JFrame {
 		});
 	}
 
-	private void borrarPublicacion(int idPubli, int mode) {
-		Controlador.INSTANCE.deletePublicacion(idPubli);
+	private void borrarPublicacion(Publicacion p, int mode) {
+		Controlador.INSTANCE.deletePublicacion(p);
 		panelFotosPerfil.removeAll();
 		if (mode == MODE_FOTO)
-			cargarFotosPerfil(Controlador.INSTANCE.getUsuarioActual());
+			cargarFotosPerfil(usuarioActual);
 		else
-			cargarAlbumesPerfil(Controlador.INSTANCE.getUsuarioActual());
+			cargarAlbumesPerfil(this.usuarioActual);
 		recargarVentana();
 	}
 
-	private void mostrarPublicacion(ComunicacionConGUI publi, int mode) {
+	private void mostrarPublicacion(Publicacion publi, int mode) {
 		if (mode == MODE_FOTO) {// Cargamos la foto
 			ShowImageGUI w = new ShowImageGUI(framePrincipal, publi, ShowImageGUI.MODE_FOTO_COMENTARIO);
 			w.setVisible(true);
 		} else if (mode == MODE_ALBUM) {// Cargamos el album
 			ShowAlbumGUI w = new ShowAlbumGUI(framePrincipal, publi);
 			w.setVisible(true);
+			panelFotosPerfil.removeAll();
+			cargarAlbumesPerfil(publi.getUsuario());
+			recargarVentana();
 		}
 	}
 
 	private JPanel cargarFotos() {// Cargamos fotos de la pantalla principal
-		// He tenido que insertar Foto ==> La interfaz conoce "ALGO" del dominio
-		List<ComunicacionConGUI> aux = Controlador.INSTANCE.getFotosPrincipal();
-		ArrayList<ComunicacionConGUI> fotos = new ArrayList<>(aux);
+		List<Foto> fotos = usuarioActual.getFotosPrincipal();
 
 		int padding = 0;
 		JPanel panelListaFotos = new JPanel();
@@ -757,7 +720,7 @@ public class PrincipalGUI extends JFrame {
 		}
 
 		// Recorremos la lista de fotos para pasarlas al gridLayout
-		for (ComunicacionConGUI f : fotos) {
+		for (Foto f : fotos) {
 			JPanel panelEntradaFoto = new JPanel();
 			panelEntradaFoto.setBorder(new CompoundBorder(new EmptyBorder(0, 0, 5, 0),
 					new BevelBorder(BevelBorder.LOWERED, null, null, null, null)));
@@ -769,9 +732,9 @@ public class PrincipalGUI extends JFrame {
 			// Dimensionamos la foto
 			JLabel picLabel = new JLabel("Picture");
 			try {// Metemos la imagen dimensionada en la entrada
-				picLabel = crearLabelFoto(f.getPathFoto(), DEFAULT_X, DEFAULT_Y);
+				picLabel = crearLabelFoto(f.getPath(), DEFAULT_X, DEFAULT_Y);
 			} catch (IOException e1) {
-				System.err.println("Excepción: Fallo al cargar imagen " + f.getPathFoto());
+				System.err.println("Excepción: Fallo al cargar imagen " + f.getPath());
 			}
 			panelFoto.add(picLabel);
 			addManejadorPanelFoto(panelFoto, f);
@@ -830,10 +793,10 @@ public class PrincipalGUI extends JFrame {
 
 			JLabel lblFotoUsuario = new JLabel("Profile picture");
 			try {
-				lblFotoUsuario = crearLabelFoto(Controlador.INSTANCE.getFotoPerfilUsuario(f.getUsername()),
-						ENTRADA_FOTO_PERFIL_SIZE, ENTRADA_FOTO_PERFIL_SIZE);
+				lblFotoUsuario = crearLabelFoto(f.getUsuario().getFotoPerfil(), ENTRADA_FOTO_PERFIL_SIZE,
+						ENTRADA_FOTO_PERFIL_SIZE);
 			} catch (IOException e) {
-				System.err.println("Excepcion: foto perfil usuario" + f.getUsername());
+				System.err.println("Excepcion: foto perfil usuario" + f.getUsuario().getUsername());
 			}
 			panelPerfilUsuario.add(lblFotoUsuario);
 
@@ -841,7 +804,7 @@ public class PrincipalGUI extends JFrame {
 			panelPerfilUsuario.add(new JPanel());
 
 			// Username
-			JLabel lblNombreUsuario = new JLabel(f.getUsername());
+			JLabel lblNombreUsuario = new JLabel(f.getUsuario().getUsername());
 			lblNombreUsuario.setBorder(new CompoundBorder(new LineBorder(Color.BLACK), new EmptyBorder(5, 5, 5, 5)));
 			panelPerfilUsuario.add(lblNombreUsuario);
 
@@ -849,7 +812,7 @@ public class PrincipalGUI extends JFrame {
 			panelPerfilUsuario.add(new JPanel());
 
 			// Fecha de publicacion
-			JLabel lblFecha = new JLabel("Fecha publicacion: " + f.getFecha().format(Controlador.HUMAN_FORMATTER));
+			JLabel lblFecha = new JLabel("Fecha: " + f.getFecha().format(Controlador.HUMAN_FORMATTER));
 			panelPerfilUsuario.add(lblFecha);
 
 			// Titulo y pie de foto
@@ -872,32 +835,31 @@ public class PrincipalGUI extends JFrame {
 		return panelListaFotos;
 	}
 
-	private void addManejadorBtnComentario(JButton btnComentarios, ComunicacionConGUI f) {
+	private void addManejadorBtnComentario(JButton btnComentarios, Foto f) {
 		btnComentarios.addActionListener(ev -> {
 			PresentationGUI w = new PresentationGUI(framePrincipal, PresentationGUI.MODE_COMENTARIO);
 			w.mostrarVentana();
 			Optional<String> optComentario = w.getTexto();
 			if (optComentario.isPresent() && !optComentario.get().equals("")) {
-				Controlador.INSTANCE.escribirComentario(f.getIdPublicacion(), optComentario.get());
+				Controlador.INSTANCE.escribirComentario(f, optComentario.get());
 			}
 		});
 	}
 
-	private void addManejadorBtnMG(JButton btnMG, JPanel panelContadorMG, ComunicacionConGUI f) {
+	private void addManejadorBtnMG(JButton btnMG, JPanel panelContadorMG, Foto f) {
 		btnMG.addActionListener(ev -> {
-			Controlador.INSTANCE.darMeGusta(f.getIdPublicacion());
+			Controlador.INSTANCE.darMeGusta(f);
 			panelContadorMG.removeAll();
-			JLabel newLabelContadorMG = new JLabel(
-					Controlador.INSTANCE.getMeGustasFoto(f.getIdPublicacion()) + " Me gusta");
+			JLabel newLabelContadorMG = new JLabel(f.getMeGustas() + " Me gusta");
 			panelContadorMG.add(newLabelContadorMG);
 			recargarVentana();
 		});
 	}
 
-	private void addManejadorPanelFoto(JPanel p, ComunicacionConGUI com) {
+	private void addManejadorPanelFoto(JPanel p, Foto f) {
 		p.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent e) {
-				ShowImageGUI w = new ShowImageGUI(framePrincipal, com, ShowImageGUI.MODE_FOTO_ONLY);
+				ShowImageGUI w = new ShowImageGUI(framePrincipal, f, ShowImageGUI.MODE_FOTO_ONLY);
 				w.setVisible(true);
 			}
 		});
@@ -939,5 +901,113 @@ public class PrincipalGUI extends JFrame {
 	private void recargarVentana() {
 		framePrincipal.revalidate();
 		framePrincipal.repaint();
+	}
+	
+	//Métodos generalizados
+	private void cargarImagenesModelo(ArrayList<Publicacion> publics, DefaultListModel<ImageIcon> model) {
+		BufferedImage foto;
+		int cont = 0;
+		try {// Cargamos las imágenes en el modelo dimensionadas
+			for (Publicacion f : publics) {
+				File fi;
+				if (f instanceof Album) {
+					fi = new File(((Album) f).getListaFotos().get(0).getPath());
+				} else {
+					fi = new File(((Foto) f).getPath());
+				}
+				foto = ImageIO.read(fi);
+
+				double[] size = new double[2];
+				size[0] = foto.getWidth(null);
+				size[1] = foto.getHeight(null);
+				setProfileProp(size, CELL_SIZE);
+
+				Image resizedImage;
+				resizedImage = foto.getScaledInstance((int) size[0], (int) size[1], Image.SCALE_SMOOTH);
+				ImageIcon icon = new ImageIcon(resizedImage);
+
+				model.add(cont, icon);
+				cont++;
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private Icon crearBtnIcono(String path, int width, int height) throws IOException {
+		// Abrimos la foto original
+		BufferedImage original;
+		File fi = new File(path);
+		original = ImageIO.read(fi);
+
+		// Redimensionamos la foto al tamaño pedido
+		double[] size = new double[2];
+		size[0] = original.getWidth();
+		size[1] = original.getHeight();
+		setProp(size, width, height);
+		Image resizedImg = original.getScaledInstance((int) size[0], (int) size[1], Image.SCALE_SMOOTH);
+
+		// Creamos botón con imagen dimensionada
+		Icon icon = new ImageIcon(resizedImg);
+		return icon;
+	}
+
+	public static JLabel crearLabelFoto(String path, int width, int height) throws IOException {
+		// Cargamos foto original
+		BufferedImage foto;
+		File fi = new File(path);
+		foto = ImageIO.read(fi);
+
+		// Redimensionamos
+		double[] size = new double[2];
+		size[0] = foto.getWidth(null);
+		size[1] = foto.getHeight(null);
+		setProp(size, width, height);
+
+		// Creamos el JLabel
+		JLabel picLabel = new JLabel();
+		Image resizedImage;
+		resizedImage = foto.getScaledInstance((int) size[0], (int) size[1], Image.SCALE_SMOOTH);
+		picLabel.setIcon(new ImageIcon(resizedImage));
+		return picLabel;
+	}
+
+	public static void setProp(double[] size, double x, double y) {// SetProporcion
+		double[] newSize = new double[2];
+		newSize[0] = size[0];
+		newSize[1] = size[1];
+		double prop;
+		if (size[0] >= x) {
+			prop = size[0] / size[1];
+			newSize[0] = x;
+			newSize[1] = x / prop;
+		}
+		if (newSize[1] >= y) {
+			prop = size[1] / size[0];
+			newSize[1] = y;
+			newSize[0] = y / prop;
+		}
+
+		size[0] = newSize[0];
+		size[1] = newSize[1];
+	}
+
+	public static void setProfileProp(double[] size, double w) {// SetProporcion
+		double[] newSize = new double[2];
+		newSize[0] = size[0];
+		newSize[1] = size[1];
+		double prop;
+		if (size[1] >= size[0]) {// fotos verticales
+			prop = size[0] / size[1];
+			newSize[0] = w;
+			newSize[1] = w / prop;
+		} else {// fotos horizontales
+			prop = size[1] / size[0];
+			newSize[1] = w;
+			newSize[0] = w / prop;
+		}
+
+		size[0] = newSize[0];
+		size[1] = newSize[1];
 	}
 }

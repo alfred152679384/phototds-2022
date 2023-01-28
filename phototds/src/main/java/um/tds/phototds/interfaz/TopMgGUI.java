@@ -14,8 +14,8 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 
-import um.tds.phototds.controlador.ComunicacionConGUI;
 import um.tds.phototds.controlador.Controlador;
+import um.tds.phototds.dominio.Foto;
 
 import java.awt.GridLayout;
 import java.io.IOException;
@@ -47,7 +47,7 @@ public class TopMgGUI extends JDialog {
 		panelCentral.setLayout(new BoxLayout(panelCentral, BoxLayout.Y_AXIS));
 		getContentPane().add(panelCentral, BorderLayout.CENTER);
 		
-		List<ComunicacionConGUI> fotos = Controlador.INSTANCE.getTopMeGustasUsuarioActual();
+		List<Foto> fotos = Controlador.INSTANCE.getUsuarioActual().getTopMG();
 		
 		JPanel panelListaFotos = new JPanel();
 		int padding = 0;
@@ -58,7 +58,7 @@ public class TopMgGUI extends JDialog {
 			panelListaFotos.setLayout(new GridLayout(fotos.size(), 0, 0, 0));
 		}
 			
-		for(ComunicacionConGUI f : fotos) {
+		for(Foto f : fotos) {
 			JPanel panelEntradaFoto = new JPanel();
 			panelEntradaFoto.setBorder(new CompoundBorder(new EmptyBorder(0, 0, 5, 0),
 					new BevelBorder(BevelBorder.LOWERED, null, null, null, null)));
@@ -70,7 +70,7 @@ public class TopMgGUI extends JDialog {
 			//Dimensionamos la foto
 			JLabel picLabel = new JLabel("Picture");
 			try {
-				picLabel = PrincipalGUI.crearLabelFoto(f.getPathFoto(), 200, 150);
+				picLabel = PrincipalGUI.crearLabelFoto(f.getPath(), 200, 150);
 			}catch(IOException e) {
 				System.err.println("Excepción: Error al cargar imagen");
 			}

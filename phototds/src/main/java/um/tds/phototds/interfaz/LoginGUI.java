@@ -100,6 +100,7 @@ public class LoginGUI{
 		btnInicSes.setFont(new Font("Tahoma", Font.PLAIN, 30));
 		btnInicSes.setAlignmentX(Component.CENTER_ALIGNMENT);
 		addManejadorBtnLogin(btnInicSes);
+		frameLogin.getRootPane().setDefaultButton(btnInicSes);
 		panelSuperior.add(btnInicSes);
 
 		JPanel panelPadding0 = new JPanel();

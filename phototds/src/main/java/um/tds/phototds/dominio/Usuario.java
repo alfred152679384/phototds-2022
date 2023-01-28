@@ -24,7 +24,7 @@ public class Usuario implements NotificacionListener {
 
 	private Date fechaNacimiento;
 	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-	private DescuentoEstrategia descuentoEstrategia;
+	private DescuentoEstrategia descuentoEstrategia;//Not DAO
 
 	private Optional<String> fotoPerfil;
 	private Optional<String> presentacion;
@@ -240,21 +240,51 @@ public class Usuario implements NotificacionListener {
 	}
 
 	// Funcionalidad
-	public void addPublicacion(Publicacion p) {
+	public Foto addFoto (String title, String descripcion, String path) {
+		Foto f = new Foto(this, title, descripcion, path);
+		
+		addPublicacion(f);
+		return f;
+	}
+	
+	public Album addAlbum (String titulo, String descripcion, List<String> fTitulo, List<String> fDesc,
+			List<String> fPath) {
+		//Creamos las fotos
+		List<Foto> fotosAlbum = new LinkedList<>();
+		for (int i = 0; i < fTitulo.size(); i++) {
+			fotosAlbum.add(new Foto(this, fTitulo.get(i), fDesc.get(i), fPath.get(i)));
+		}
+		
+		//Creamos el album
+		Album a = new Album(this, titulo, descripcion, fotosAlbum);
+		
+		addPublicacion(a);
+		return a;
+	}
+	
+	private void addPublicacion(Publicacion p) {
 		this.publicaciones.add(p);
 		seguidores.stream().forEach(s -> s.notificarPublicacion(new Notificacion(p, p.getFecha())));
+	}
+	
+	public List<Foto> addFotosToAlbum(Album a, List<String> titList, List<String> descList,
+			List<String> pList) {
+		List<Foto> nuevasFotos = new LinkedList<>();
+		for(int i = 0; i< titList.size(); i++) {
+			Foto f = new Foto(this, titList.get(i), descList.get(i), pList.get(i));
+			a.addFoto(f);
+			nuevasFotos.add(f);
+		}
+		return nuevasFotos;
 	}
 
 	public void darMeGusta(Publicacion f) {
 		publicaciones.stream().filter(p -> p.getId() == f.getId()).forEach(p -> p.darMeGusta());
 	}
 
-	public void removePublicacion(int id) {
-		publicaciones.removeIf(p -> p.getId() == id);
-	}
-
-	public void addComentario(Publicacion f, Comentario c) {
-		publicaciones.stream().filter(p -> p.getId() == f.getId()).map(p -> p.addComentario(c));
+	public void removePublicacion(Publicacion p) {
+		boolean removed = publicaciones.remove(p);
+		if(!removed) System.err.println("Publicacion "+p.getTitulo()+" no ha sido borrada");
 	}
 
 	public void seguirUsuario(Usuario user) {
@@ -267,6 +297,7 @@ public class Usuario implements NotificacionListener {
 			this.seguidores.add(user);
 	}
 
+	@Override
 	public void notificarPublicacion(Notificacion n) {
 		this.notificaciones.add(n);
 	}

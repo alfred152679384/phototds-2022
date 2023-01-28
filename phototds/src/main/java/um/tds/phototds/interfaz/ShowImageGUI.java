@@ -17,9 +17,11 @@ import java.awt.FlowLayout;
 import javax.swing.JButton;
 import javax.swing.BoxLayout;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
-import um.tds.phototds.controlador.ComunicacionConGUI;
 import um.tds.phototds.controlador.Controlador;
+import um.tds.phototds.dominio.Foto;
+import um.tds.phototds.dominio.Publicacion;
 
 public class ShowImageGUI extends JDialog {
 	// Necesario para eliminar warnings
@@ -38,9 +40,9 @@ public class ShowImageGUI extends JDialog {
 
 	// Atributos
 	private File imageFile;
-	private JTextArea textTitulo;
+	private JTextField textTitulo;
 	private JTextArea textDesc;
-	private ComunicacionConGUI com;
+	private Foto foto;
 	private int mode;
 	private boolean ok;
 
@@ -59,10 +61,10 @@ public class ShowImageGUI extends JDialog {
 		initialize();
 	}
 
-	public ShowImageGUI(JFrame owner, ComunicacionConGUI com , int mode) {
+	public ShowImageGUI(JFrame owner, Publicacion f , int mode) {
 		super(owner, "Mostrar Foto", true);
-		this.imageFile = new File(com.getPathFoto());
-		this.com = com;
+		this.foto = (Foto)f;
+		this.imageFile = new File(foto.getPath());
 		this.mode = mode;
 		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setResizable(false);
@@ -100,6 +102,7 @@ public class ShowImageGUI extends JDialog {
 		// Botón para compartir
 		if(mode == MODE_PUBLICAR_FOTO) {
 			JButton btnCompartir = new JButton("Compartir");
+			getRootPane().setDefaultButton(btnCompartir);
 			btnCompartir.addActionListener(e -> {
 				Controlador.INSTANCE.addFoto(imageFile.getAbsolutePath(), textTitulo.getText(), textDesc.getText());
 				this.dispose();
@@ -107,13 +110,15 @@ public class ShowImageGUI extends JDialog {
 			panelBtnComp.add(btnCompartir);
 		}else if (mode == MODE_FOTO_COMENTARIO){
 			JButton btnCompartir = new JButton("OK");
+			getRootPane().setDefaultButton(btnCompartir);
 			btnCompartir.addActionListener(ev -> {
-				Controlador.INSTANCE.escribirComentario(com.getIdPublicacion(), textDesc.getText());
+				Controlador.INSTANCE.escribirComentario(foto, textDesc.getText());
 				this.dispose();
 			});
 			panelBtnComp.add(btnCompartir);
 		}else if(mode == MODE_ALBUM) {
 			JButton btnCompartir = new JButton("Añadir");
+			getRootPane().setDefaultButton(btnCompartir);	
 			btnCompartir.addActionListener(ev -> {
 				this.ok = true;
 				this.dispose();
@@ -127,7 +132,7 @@ public class ShowImageGUI extends JDialog {
 
 		JButton btnCancelar = new JButton("Cancelar");
 		btnCancelar.addActionListener(e -> {
-			textTitulo = new JTextArea();
+			textTitulo = new JTextField();
 			this.textTitulo.setText("");
 			this.textDesc.setText("");
 			this.ok = false;
@@ -161,11 +166,8 @@ public class ShowImageGUI extends JDialog {
 			panelTitulo.add(panelCentroTitulo, BorderLayout.CENTER);
 
 			// Titulo de foto
-			textTitulo = new JTextArea();
-			textTitulo.setRows(1);
+			textTitulo = new JTextField();
 			textTitulo.setColumns(20);
-			textTitulo.setWrapStyleWord(true);
-			textTitulo.setLineWrap(true);
 			panelCentroTitulo.add(textTitulo);
 		}
 

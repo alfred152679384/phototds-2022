@@ -16,7 +16,6 @@ public class Comentario {
 
 	// Constructor
 	public Comentario(Usuario autor, String texto) {
-		super();
 		this.autor = autor;
 		this.texto = texto;
 	}

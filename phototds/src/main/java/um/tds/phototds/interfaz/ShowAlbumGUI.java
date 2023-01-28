@@ -12,8 +12,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 
-import um.tds.phototds.controlador.ComunicacionConGUI;
 import um.tds.phototds.controlador.Controlador;
+import um.tds.phototds.dominio.Album;
+import um.tds.phototds.dominio.Foto;
+import um.tds.phototds.dominio.Publicacion;
 
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
@@ -39,19 +41,17 @@ public class ShowAlbumGUI extends JDialog {
 	private static final int DEFAULT_SCROLL = 10;
 	private static final int LIKE_SIZE = 25;
 	private static final String LIKE_PATH = "resources\\like.png";
-	
 
 	// Atributos
 	private JFrame owner;
-	private ComunicacionConGUI album;
+	private Album album;
 	private JPanel panelCentral;
-	private String propietarioAlbum;
 	private JPanel panelNorte;
 
 	/**
 	 * Create the dialog.
 	 */
-	public ShowAlbumGUI(JFrame owner, ComunicacionConGUI album) {
+	public ShowAlbumGUI(JFrame owner, Publicacion album) {
 		super(owner, "Mostrar Album", true);
 		this.setResizable(false);
 		this.owner = owner;
@@ -59,8 +59,7 @@ public class ShowAlbumGUI extends JDialog {
 		setBounds(400, 100, 450, 550);
 		getContentPane().setLayout(new BorderLayout());
 		getContentPane().setBackground(Color.white);
-		this.propietarioAlbum = album.getUsername();
-		this.album = album;
+		this.album = (Album) album;
 		this.panelNorte = new JPanel();
 
 		panelCentral.setLayout(new BorderLayout(0, 0));
@@ -96,7 +95,7 @@ public class ShowAlbumGUI extends JDialog {
 			panelNorte.add(panelDescAlbum);
 			{
 				JTextArea txtDescAlbum = new JTextArea(this.album.getDescripcion());
-				txtDescAlbum.setBackground(new Color(240,240,240));
+				txtDescAlbum.setBackground(new Color(240, 240, 240));
 				txtDescAlbum.setEditable(false);
 				panelDescAlbum.add(txtDescAlbum);
 			}
@@ -105,13 +104,13 @@ public class ShowAlbumGUI extends JDialog {
 			JPanel panelContadorMG = new JPanel();
 			panelNorte.add(panelContadorMG);
 			{
-				int mg = Controlador.INSTANCE.getMeGustasFoto(this.album.getIdPubli());
-				JLabel lblContadorMG = new JLabel(Integer.toString(mg)+" Me gustas");
+				int mg = this.album.getMeGustas();
+				JLabel lblContadorMG = new JLabel(Integer.toString(mg) + " Me gustas");
 				panelContadorMG.add(lblContadorMG);
 			}
 		}
 	}
-	
+
 	private void cargarPanelCentral() {
 		DefaultListModel<ImageIcon> model = new DefaultListModel<>();
 		JList<ImageIcon> lista;
@@ -134,8 +133,8 @@ public class ShowAlbumGUI extends JDialog {
 
 	private void crearManejadorListaFotosAlbumes(JList<ImageIcon> lista) {
 		lista.addListSelectionListener(ev -> {
-			ShowImageGUI w = new ShowImageGUI(owner, album.getListaFotosAlbum().get(lista.getSelectedIndex()),
-					ShowImageGUI.MODE_FOTO_ONLY);
+			ShowImageGUI w = new ShowImageGUI(owner, album.getListaFotos()
+					.get(lista.getSelectedIndex()),	ShowImageGUI.MODE_FOTO_ONLY);
 			w.setVisible(true);
 		});
 	}
@@ -144,17 +143,18 @@ public class ShowAlbumGUI extends JDialog {
 		BufferedImage foto;
 		int cont = 0;
 		try {// Cargamos las imágenes en el modelo dimensionadas
-			for (ComunicacionConGUI f : this.album.getListaFotosAlbum()) {
-				File fi = new File(f.getPathFoto());
+			for (Foto f : this.album.getListaFotos()) {
+				File fi = new File(f.getPath());
 				foto = ImageIO.read(fi);
 
 				double[] size = new double[2];
 				size[0] = foto.getWidth(null);
 				size[1] = foto.getHeight(null);
-				Controlador.setProfileProp(size, ALBUM_CELL_SIZE);
+				PrincipalGUI.setProfileProp(size, ALBUM_CELL_SIZE);
 
 				Image resizedImage;
-				resizedImage = foto.getScaledInstance((int) size[0], (int) size[1], Image.SCALE_SMOOTH);
+				resizedImage = foto.getScaledInstance((int) size[0], (int) size[1],
+						Image.SCALE_SMOOTH);
 				ImageIcon icon = new ImageIcon(resizedImage);
 
 				model.add(cont, icon);
@@ -169,22 +169,18 @@ public class ShowAlbumGUI extends JDialog {
 		JPanel panelSur = new JPanel();
 		panelSur.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		getContentPane().add(panelSur, BorderLayout.SOUTH);
-	
-		if(Controlador.INSTANCE.getUsuarioActual().equals(this.propietarioAlbum)) {
+
+		//Si es el usuario actual podrá añadir fotos
+		if (Controlador.INSTANCE.getUsuarioActual().getUsername()
+				.equals(album.getUsuario().getUsername())) {
+			
 			JButton btnAddFoto = new JButton("Añadir Foto");
 			btnAddFoto.addActionListener(ev -> {
-				AddFotoGUI w = new AddFotoGUI(owner, AddFotoGUI.MODE_ALBUM);
-				w.setVisible(true);
-				Controlador.INSTANCE.addFotosToAlbum(this.album.getIdPublicacion(), w.getListFotos());
-				this.album.addFotos(w.getListFotos());
-				panelCentral.removeAll();
-				cargarPanelCentral();
-				ShowAlbumGUI.this.revalidate();
-				ShowAlbumGUI.this.revalidate();
+				crearManejadorBtnAddAlbum(btnAddFoto);
 			});
 			panelSur.add(btnAddFoto);
 		}
-		
+
 		JButton btnMG = new JButton("Like");
 		try {
 			btnMG = cargarImagenLike();
@@ -195,17 +191,28 @@ public class ShowAlbumGUI extends JDialog {
 		addManejadorBtnMG(btnMG);
 		panelSur.add(btnMG);
 	}
+
+	private void crearManejadorBtnAddAlbum(JButton btnAddFoto) {
+		AddFotoGUI w = new AddFotoGUI(owner, AddFotoGUI.MODE_ALBUM);
+		w.setVisible(true);
+		Controlador.INSTANCE.addFotosToAlbum(this.album, w.getListTitulos(), 
+				w.getListDescripciones(), w.getListPaths());
+		panelCentral.removeAll();
+		cargarPanelCentral();
+		ShowAlbumGUI.this.revalidate();
+		ShowAlbumGUI.this.revalidate();
+	}
 	
 	private void addManejadorBtnMG(JButton btnMG) {
 		btnMG.addActionListener(ev -> {
 			panelNorte.removeAll();
-			Controlador.INSTANCE.darMeGusta(this.album.getIdPubli());
+			Controlador.INSTANCE.darMeGusta(this.album);
 			crearPanelNorte();
 			ShowAlbumGUI.this.revalidate();
 			ShowAlbumGUI.this.repaint();
 		});
 	}
-	
+
 	private JButton cargarImagenLike() throws IOException {
 		BufferedImage original;
 		File fi = new File(LIKE_PATH);
@@ -215,8 +222,9 @@ public class ShowAlbumGUI extends JDialog {
 		double[] size = new double[2];
 		size[0] = original.getWidth();
 		size[1] = original.getHeight();
-		Controlador.setProp(size, LIKE_SIZE, LIKE_SIZE);
-		Image resizedImg = original.getScaledInstance((int) size[0], (int) size[1], Image.SCALE_SMOOTH);
+		PrincipalGUI.setProp(size, LIKE_SIZE, LIKE_SIZE);
+		Image resizedImg = original.getScaledInstance((int) size[0], (int) size[1], 
+				Image.SCALE_SMOOTH);
 
 		// Creamos botón con imagen dimensionada
 		Icon icon = new ImageIcon(resizedImg);
