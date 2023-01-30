@@ -8,48 +8,52 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
-import um.tds.phototds.controlador.Controlador;
 
 public abstract class Publicacion implements Comparable<Publicacion> {
 	// Constantes
 	private static final char SPACE = ' ';
 	private static final char AlMOHADILLA = '#';
-	private static final String LISTA_VACIA = "[]";
-	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_DATE_TIME;
-	public static final DateTimeFormatter HUMAN_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+	public static final DateTimeFormatter HUMAN_FORMATTER = 
+			DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 
 	// Atributos
 	private int id;
 	private String titulo;
 	private Usuario user;
+	private Optional<String> usuarioDAO;
 	private LocalDateTime fecha;
 	private String descripcion;
 	protected int meGustas;
-	private LinkedList<String> hashtags;
-	private LinkedList<Comentario> comentarios;
+	private List<String> hashtags;
+	private List<Comentario> comentarios;
+	private Optional<String> comentariosDAO;
 
 	// Constructor básico
 	public Publicacion(Usuario user, String titulo, String descripcion) {
 		this.user = user;
+		this.usuarioDAO = Optional.empty();
 		this.titulo = titulo;
 		this.descripcion = descripcion;
 		this.fecha = LocalDateTime.now();
 		this.hashtags = new LinkedList<String>(detectarHashtags(descripcion));
-		this.comentarios = new LinkedList<Comentario>();
+		this.comentarios = new LinkedList<>();
+		this.comentariosDAO = Optional.empty();
 	}
 
 	// Constructor DAO
-	public Publicacion(String user, String titulo, String fecha, String descripcion, 
-			String meGustas, String hashtags, String comentarios) {
-		this.user = Controlador.INSTANCE.findUsuario(user).get();
+	public Publicacion(String userDAO, String titulo, LocalDateTime fecha, String descripcion, 
+			int meGustas, List<String> hashtags, String comentariosDAO) {
+//		this.user = Not initialized;
+		this.usuarioDAO = Optional.of(userDAO);
 		this.titulo = titulo;
-		this.fecha = LocalDateTime.parse(fecha, FORMATTER);
+		this.fecha = fecha;
 		this.descripcion = descripcion;
-		this.meGustas = Integer.parseInt(meGustas);
-		this.hashtags = new LinkedList<>(hashtagToList(hashtags));
-		this.comentarios = new LinkedList<>(Comentario.comentariosToList(comentarios));
+		this.meGustas = meGustas;
+		this.hashtags = hashtags;
+		this.comentarios = new LinkedList<>();
+		this.comentariosDAO = Optional.of(comentariosDAO);
 	}
 
 	// getters-setters
@@ -57,22 +61,22 @@ public abstract class Publicacion implements Comparable<Publicacion> {
 		return this.user;
 	}
 	
-	public String getUsuarioDAO() {
-		return this.user.getUsername();
+	public void setUsuario(List<Usuario> users) {
+		if(usuarioDAO.isEmpty())
+			return;
+		Optional<Usuario> user = users.stream()
+			.filter(u -> u.getUsername().equals(usuarioDAO.get()))
+			.findFirst();
+		if(user.isEmpty())
+			return;
+		usuarioDAO = Optional.empty();
+		this.user = user.get();
 	}
 	
 	public String getTitulo() {
 		return titulo;
 	}
 
-	public void setTitulo(String titulo) {
-		this.titulo = titulo;
-	}
-
-	public String getFechaDAO() {
-		return fecha.format(FORMATTER);
-	}
-		
 	public LocalDateTime getFecha() {
 		return fecha;
 	}
@@ -84,14 +88,6 @@ public abstract class Publicacion implements Comparable<Publicacion> {
 	public int getMeGustas() {
 		return meGustas;
 	}
-
-	public String getMegustasDAO() {
-		return Integer.toString(this.meGustas);
-	}
-	
-	public String getHashtagsDAO() {
-		return hashtagToStringDAO();
-	}
 	
 	public List<String> getHashtags(){
 		return this.hashtags;
@@ -100,9 +96,13 @@ public abstract class Publicacion implements Comparable<Publicacion> {
 	public List<Comentario> getComentarios() {
 		return this.comentarios;
 	}
-
-	public String getComentariosDAO() {
-		return Comentario.comentariosToString(this.comentarios);
+	
+	public void setComentarios(List<Usuario> users) {
+		if(comentariosDAO.isEmpty())
+			return;
+		this.comentarios = new LinkedList<>(
+				Comentario.comentariosToList(users, this.comentariosDAO.get()));
+		this.comentariosDAO = Optional.empty();
 	}
 	
 	public String getHashtagContaining(String hashtag) {
@@ -121,7 +121,7 @@ public abstract class Publicacion implements Comparable<Publicacion> {
 	}
 
 	// Funcionalidad
-	public void addHashTag(String h) {
+	public void addHashtag(String h) {
 		this.hashtags.add(AlMOHADILLA+h);
 	}
 	
@@ -150,37 +150,12 @@ public abstract class Publicacion implements Comparable<Publicacion> {
 		}
 		return list;
 	}
-
-	protected String hashtagToStringDAO() {
-		String l = "[";
-		for (int i = 0; i < this.hashtags.size(); i++) {
-			if (i == 0)
-				l += this.hashtags.get(i);
-			else
-				l += "," + this.hashtags.get(i);
-		}
-		l += "]";
-		return l;
-	}
-
-	protected List<String> hashtagToList(String s) {
-		if (s.equals(LISTA_VACIA))
-			return Collections.emptyList();
-		List<String> list = new LinkedList<>();
-		String aux = s.substring(1, s.length() - 1);
-		String[] l = aux.split(",");
-		for (int i = 0; i < l.length; i++) {
-			list.add(l[i]);
-		}
-		return list;
-	}
 	
 	public boolean equals(Object obj) {
 		return ((Publicacion) obj).getId() == getId();
 	}
 	
 	public int compareTo (Publicacion p) {
-		return p.getFecha().compareTo(getFecha());
+		return p.getFecha().compareTo(this.getFecha());
 	}
-
 }

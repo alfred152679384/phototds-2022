@@ -24,20 +24,19 @@ public class Usuario implements NotificacionListener {
 
 	private Date fechaNacimiento;
 	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-	private DescuentoEstrategia descuentoEstrategia;//Not DAO
+	private DescuentoEstrategia descuentoEstrategia;// Not DAO
 
-	private Optional<String> fotoPerfil;
+	private String fotoPerfil;
 	private Optional<String> presentacion;
 	private boolean isPremium;
 	private LinkedList<Publicacion> publicaciones;
 
 	private LinkedList<Usuario> seguidores;
 	private LinkedList<Usuario> seguidos;
-	private Optional<String> seguidoresString;
-	private Optional<String> seguidosString;
-
 	private List<Notificacion> notificaciones;
-	private String notifString;
+	private Optional<String> seguidoresDAO;
+	private Optional<String> seguidosDAO;
+	private Optional<String> notificacionesDAO;
 
 	// Constructor básico para nuevo usuario
 	public Usuario(String username, String nombre, String email, String cont, String fechN, Optional<String> fotoPerfil,
@@ -52,42 +51,49 @@ public class Usuario implements NotificacionListener {
 		} catch (ParseException e) {
 			System.err.println("Fallo Fecha Nacimiento Usuario");
 		}
-		this.fotoPerfil = fotoPerfil;
+		if(fotoPerfil.isEmpty())
+			 this.fotoPerfil = DEFAULT_FOTO;
+		else this.fotoPerfil = fotoPerfil.get();
 		this.presentacion = presentacion;
 		this.isPremium = false;
-		this.publicaciones = new LinkedList<Publicacion>();
-		this.seguidores = new LinkedList<Usuario>();
-		this.seguidos = new LinkedList<Usuario>();
-		this.seguidoresString = Optional.empty();
-		this.seguidosString = Optional.empty();
+
+		this.publicaciones = new LinkedList<>();
+		this.seguidores = new LinkedList<>();
+		this.seguidos = new LinkedList<>();
 		this.notificaciones = new LinkedList<>();
-		this.notifString = "[]";
+
+		this.seguidoresDAO = Optional.empty();
+		this.seguidosDAO = Optional.empty();
+		this.notificacionesDAO = Optional.empty();
 	}
 
 	// Constructor DAO
-	public Usuario(String username, String nombre, String email, String password, String fechN, String fotoPerfil,
-			String presentacion, String isPremium, String seguidores, String seguidos, String notificaciones) {
+	public Usuario(String username, String nombre, String email, String password, Date fechN,
+			String fotoPerfil, Optional<String> presentacion, boolean isPremium, 
+			Optional<String> seguidores, Optional<String> seguidos, Optional<String> notificaciones) {
 		this.username = username;
 		this.nombre = nombre;
 		this.email = email;
 		this.password = password;
-		try {
-			this.fechaNacimiento = this.dateFormat.parse(fechN);
-		} catch (ParseException e) {
-			System.err.println("Fallo Fecha Nacimiento Usuario");
-		}
-		this.fotoPerfil = fotoPerfil.equals("null") ? Optional.empty() : Optional.of(fotoPerfil);
-		this.presentacion = presentacion.equals("null") ? Optional.empty() : Optional.of(presentacion);
-		this.isPremium = isPremium.equals("true") ? true : false;
-		this.publicaciones = new LinkedList<>(); // No se inicializa porque todavía no tienen por qué existir las fotos
-		this.seguidores = new LinkedList<Usuario>();
-		this.seguidoresString = Optional.of(seguidores);
-		this.seguidos = new LinkedList<Usuario>();
-		this.seguidosString = Optional.of(seguidos);
-		this.notifString = notificaciones;
+		this.fechaNacimiento = fechN;
+
+		this.fotoPerfil = fotoPerfil;
+		this.presentacion = presentacion;
+		this.isPremium = isPremium;
+
+		// Todavía no se han cargado las publicaciones, seguidores, seguidos y
+		// notificaciones
+		this.publicaciones = new LinkedList<>();
+		this.seguidores = new LinkedList<>();
+		this.seguidos = new LinkedList<>();
+		this.notificaciones = new LinkedList<>();
+
+		this.seguidoresDAO = seguidores;
+		this.seguidosDAO = seguidos;
+		this.notificacionesDAO = notificaciones;
 	}
 
-	// getters-setters
+	// Getters & Setters
 	public int getId() {
 		return id;
 	}
@@ -124,24 +130,16 @@ public class Usuario implements NotificacionListener {
 		return this.seguidos.size();
 	}
 
-	public String getFechaNacimientoDAO() {
-		return this.dateFormat.format(fechaNacimiento);
-	}
-
 	public Date getFechaNacimiento() {
 		return this.fechaNacimiento;
 	}
 
 	public String getFotoPerfil() {
-		if (fotoPerfil.isPresent())
-			return fotoPerfil.get();
-		return DEFAULT_FOTO;
+		return this.fotoPerfil;
 	}
 
-	public String getFotoPerfilDAO() {
-		if (fotoPerfil.isPresent())
-			return fotoPerfil.get();
-		return "null";
+	public void setFotoPerfil(String fotoPerfil) {
+		this.fotoPerfil = fotoPerfil;
 	}
 
 	public boolean isPremium() {
@@ -155,9 +153,9 @@ public class Usuario implements NotificacionListener {
 	public List<Publicacion> getPublicaciones() {
 		return Collections.unmodifiableList(this.publicaciones);
 	}
-
-	public void setFotoPerfil(String fotoPerfil) {
-		this.fotoPerfil = Optional.of(fotoPerfil);
+	
+	public int getNumPublicaciones() {
+		return this.publicaciones.size();
 	}
 
 	public Optional<String> getPresentacion() {
@@ -168,109 +166,88 @@ public class Usuario implements NotificacionListener {
 		this.presentacion = Optional.of(presentacion);
 	}
 
-	public String getDAOPresentacion() {
-		if (presentacion.isPresent())
-			return presentacion.get();
-		return "null";
-	}
-	
 	public void setDescuentoEstrategia(DescuentoEstrategia d) {
 		this.descuentoEstrategia = d;
 	}
 
-	public String getNotificacionesDAO() {
-		String n = "[";
-		for (int i = 0; i < this.notificaciones.size(); i++) {
-			if (i == 0)
-				n += notificaciones.get(i).getPublicacion().getId();
-			else
-				n += "," + notificaciones.get(i).getPublicacion().getId();
-		}
-		n += "]";
-		return n;
-	}
-
-	public String isPremiumDAO() {
-		if (isPremium)
-			return "true";
-		return "false";
-	}
-
-	public String getSeguidoresDAO() {
-		return listToString(this.seguidores);
-	}
-
-	public String getListaSeguidoresString() {
-		return this.seguidoresString.get();
-	}
-
-	public String getListaSeguidosString() {
-		return this.seguidosString.get();
-	}
-
-	public String getSeguidosDAO() {
-		return listToString(this.seguidos);
-	}
-
 	public void setSeguidoresDAO(List<Usuario> seguidores) {
 		this.seguidores.addAll(seguidores);
+	}
+	
+	public Optional<String> getListaSeguidosDAO() {
+		if(this.seguidosDAO.isPresent()) {
+			Optional<String> aux = this.seguidosDAO;
+			this.seguidosDAO = Optional.empty();
+			return aux;
+		}
+		return this.seguidosDAO;
+	}
+	
+	public Optional<String> getListaSeguidoresDAO() {
+		if(this.seguidoresDAO.isPresent()) {
+			Optional<String> aux = this.seguidoresDAO;
+			this.seguidoresDAO = Optional.empty();
+			return aux;
+		}
+		return this.seguidoresDAO;
 	}
 
 	public void setSeguidosDAO(List<Usuario> seguidos) {
 		this.seguidos.addAll(seguidos);
 	}
 
-	public int getNumPublicaciones() {
-		return this.publicaciones.size();
-	}
-
 	public List<Usuario> getSeguidores() {
 		return this.seguidores;
 	}
+	
+	public List<Usuario> getSeguidos() {
+		return this.seguidos;
+	}
 
 	public List<Notificacion> getNotificaciones() {
-		List<Notificacion> notifs = new LinkedList<>(this.notificaciones);
-		this.notificaciones.clear();
-		return notifs;
+		return new LinkedList<>(this.notificaciones);
 	}
 	
-	public List<Foto> getTopMG(){
+	public void setNotificaciones() {
+		this.notificaciones.clear();
+	}
+
+	public List<Foto> getTopMG() {
 		return this.getFotosPerfil().stream().sorted((o1, o2) -> Integer.compare(o2.getMeGustas(), o1.getMeGustas()))
 				.limit(10).collect(Collectors.toList());
 	}
 
 	// Funcionalidad
-	public Foto addFoto (String title, String descripcion, String path) {
+	public Foto addFoto(String title, String descripcion, String path) {
 		Foto f = new Foto(this, title, descripcion, path);
-		
+
 		addPublicacion(f);
 		return f;
 	}
-	
-	public Album addAlbum (String titulo, String descripcion, List<String> fTitulo, List<String> fDesc,
+
+	public Album addAlbum(String titulo, String descripcion, List<String> fTitulo, List<String> fDesc,
 			List<String> fPath) {
-		//Creamos las fotos
+		// Creamos las fotos
 		List<Foto> fotosAlbum = new LinkedList<>();
 		for (int i = 0; i < fTitulo.size(); i++) {
 			fotosAlbum.add(new Foto(this, fTitulo.get(i), fDesc.get(i), fPath.get(i)));
 		}
-		
-		//Creamos el album
+
+		// Creamos el album
 		Album a = new Album(this, titulo, descripcion, fotosAlbum);
-		
+
 		addPublicacion(a);
 		return a;
 	}
-	
+
 	private void addPublicacion(Publicacion p) {
 		this.publicaciones.add(p);
 		seguidores.stream().forEach(s -> s.notificarPublicacion(new Notificacion(p, p.getFecha())));
 	}
-	
-	public List<Foto> addFotosToAlbum(Album a, List<String> titList, List<String> descList,
-			List<String> pList) {
+
+	public List<Foto> addFotosToAlbum(Album a, List<String> titList, List<String> descList, List<String> pList) {
 		List<Foto> nuevasFotos = new LinkedList<>();
-		for(int i = 0; i< titList.size(); i++) {
+		for (int i = 0; i < titList.size(); i++) {
 			Foto f = new Foto(this, titList.get(i), descList.get(i), pList.get(i));
 			a.addFoto(f);
 			nuevasFotos.add(f);
@@ -284,7 +261,8 @@ public class Usuario implements NotificacionListener {
 
 	public void removePublicacion(Publicacion p) {
 		boolean removed = publicaciones.remove(p);
-		if(!removed) System.err.println("Publicacion "+p.getTitulo()+" no ha sido borrada");
+		if (!removed)
+			System.err.println("Publicacion " + p.getTitulo() + " no ha sido borrada");
 	}
 
 	public void seguirUsuario(Usuario user) {
@@ -311,21 +289,8 @@ public class Usuario implements NotificacionListener {
 		return fotos.stream().sorted((o1, o2) -> o1.compareTo(o2)).limit(20).collect(Collectors.toList());
 	}
 
-	public void cargarNotificaciones() {
-		this.notificaciones = new LinkedList<>();
-		if (this.notifString.equals("[]")) {
-			return;
-		}
-		String aux = this.notifString.substring(1, notifString.length() - 1);
-		String[] notifs = aux.split(",");
-		for (String n : notifs) {
-			Optional<Publicacion> p = Controlador.INSTANCE.findPublicacion(Integer.parseInt(n));
-			notificaciones.add(new Notificacion(p.get(), p.get().getFecha()));
-		}
-	}
-
 	public double getPrecio() {
-		return Controlador.PRECIO_PREMIUM * (1-descuentoEstrategia.aplicarDescuento());
+		return Controlador.PRECIO_PREMIUM * (1 - descuentoEstrategia.aplicarDescuento());
 	}
 
 	public List<Foto> getFotosPerfil() {
@@ -334,19 +299,11 @@ public class Usuario implements NotificacionListener {
 	}
 
 	public List<Album> getAlbumesPerfil() {
-		return publicaciones.stream().filter(p -> p instanceof Album).map(p -> (Album) p).collect(Collectors.toList());
-	}
-
-	private String listToString(LinkedList<Usuario> list) {
-		String s = "[";
-		for (int i = 0; i < list.size(); i++) {
-			if (i == 0)
-				s += Integer.toString(list.get(i).getId());
-			else
-				s += "," + Integer.toString(list.get(i).getId());
-		}
-		s += "]";
-		return s;
+		return publicaciones.stream()
+				.filter(p -> p instanceof Album)
+				.map(p -> (Album) p)
+				.sorted()
+				.collect(Collectors.toList());
 	}
 
 	public void cargarPublicaciones(List<Publicacion> p) {
@@ -354,5 +311,23 @@ public class Usuario implements NotificacionListener {
 			this.publicaciones = new LinkedList<>();
 		else
 			this.publicaciones.addAll(p);
+	}
+	
+	public void cargarNotificaciones(List<Publicacion> publis) {
+		if (notificacionesDAO.isEmpty()) {
+			return;
+		}
+		this.notificaciones = new LinkedList<>();
+		String aux = notificacionesDAO.get().substring(1, notificacionesDAO.get().length() - 1);
+		String[] notifs = aux.split(",");
+		for (String n : notifs) {
+			Optional<Publicacion> p = publis.stream()
+					.filter(pu -> pu.getId() == Integer.parseInt(n))
+					.findFirst();
+			if(p.isPresent()) {
+				notificaciones.add(new Notificacion(p.get(), p.get().getFecha()));
+			}
+		}
+		this.notificacionesDAO = Optional.empty();
 	}
 }

@@ -3,6 +3,7 @@ package um.tds.phototds.dominio;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 import um.tds.phototds.controlador.Controlador;
 
@@ -30,19 +31,23 @@ public class Comentario {
 	}
 
 	// Funcionalidad
-	public static List<Comentario> comentariosToList(String s) {
-		if (s.equals(LISTA_VACIA))
+	public static List<Comentario> comentariosToList(List<Usuario> users, String comentarios) {
+		if (comentarios.equals(LISTA_VACIA))
 			return Collections.emptyList();
 		List<Comentario> list = new LinkedList<>();
-		String aux = s.substring(1, s.length() - 1);
+		String aux = comentarios.substring(1, comentarios.length() - 1);
 		String[] l = aux.split(",");
 		int index;
-		String autor, texto;
 		for (int i = 0; i < l.length; i++) {
 			index = l[i].indexOf(";");
-			autor = l[i].substring(0, index);
-			texto = l[i].substring(index+1);
-			list.add(new Comentario(Controlador.INSTANCE.findUsuario(autor).get(),texto));
+			String autorString = l[i].substring(0, index);
+			String texto = l[i].substring(index+1);
+			Optional<Usuario> autor = users.stream()
+				.filter(u -> u.getUsername().equals(autorString))
+				.findFirst();
+			if(autor.isPresent()) {
+				list.add(new Comentario(autor.get(), texto));
+			}
 		}
 		return list;
 	}

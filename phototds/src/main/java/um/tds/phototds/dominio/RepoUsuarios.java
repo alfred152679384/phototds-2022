@@ -52,10 +52,6 @@ public enum RepoUsuarios {
 		usuariosPorEmail.put(u.getEmail(), u);
 	}
 	
-	public void cargarNotificaciones() {
-		this.usuariosPorID.values().stream().forEach(u -> u.cargarNotificaciones());
-	}
-
 	public Optional<Usuario> findUsuario(String username) {
 		return Optional.ofNullable(usuariosPorLogin.get(username));
 	}

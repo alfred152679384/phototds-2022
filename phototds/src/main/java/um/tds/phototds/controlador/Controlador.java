@@ -34,6 +34,28 @@ public enum Controlador implements FotosListener {
 	private Controlador() {
 		// Nos añadimos a la lista de oyentes del cargador Fotos
 		ComponenteCargadorFotos.INSTANCE.addFotoListener(this);
+		
+		//Cargamos los notificaciones, publicaciones y usuarios
+		List<Usuario> users = RepoUsuarios.INSTANCE.getUsuariosRegistrados();
+		List<Publicacion> publis = RepoPublicaciones.INSTANCE.getPublicacionesSubidas();
+		
+		//publicaciones carguen sus propietarios y los comentarios también
+		publis.stream()
+			.forEach(p -> {
+				p.setUsuario(users);
+				p.setComentarios(users);
+			});
+		
+		//Usuarios cargan notificaciones y publicaciones
+		users.stream()
+			.forEach(u -> {
+				u.cargarNotificaciones(publis);
+				u.cargarPublicaciones(publis.stream()
+						.filter(p -> p.getUsuario().getUsername().equals(u.getUsername()))
+						.collect(Collectors.toList()) );
+			});
+		
+		//Conseguimos factoria
 		try {
 			factoria = FactoriaDAO.getInstancia();
 		} catch (DAOException e) {
@@ -46,10 +68,6 @@ public enum Controlador implements FotosListener {
 		return this.usuario;
 	}
 
-//	public Collection<Usuario> getUsuariosRegistrados() {
-//		return RepoUsuarios.INSTANCE.getUsuariosRegistrados();
-//	}
-
 	// Funcionalidad
 	public boolean loginUser(String username, String p) {
 		Optional<Usuario> aux = RepoUsuarios.INSTANCE.findUsuario(username);
@@ -58,8 +76,6 @@ public enum Controlador implements FotosListener {
 
 		if (aux.isPresent() && aux.get().getPassword().equals(p)) {
 			this.usuario = aux.get();
-			RepoPublicaciones.INSTANCE.cargarPublicacionesUsuarios();// TODO mejorar persistencia
-			RepoUsuarios.INSTANCE.cargarNotificaciones();
 			return true;
 		}
 		return false;
@@ -106,6 +122,7 @@ public enum Controlador implements FotosListener {
 	
 	public List<Notificacion> getNotificaciones(Usuario u){
 		List<Notificacion> returnedList = u.getNotificaciones();
+		u.setNotificaciones();
 		factoria.getUsuarioDAO().update(u);
 		return returnedList;
 	}
@@ -141,21 +158,13 @@ public enum Controlador implements FotosListener {
 
 	public void addFotosToAlbum(Album a, List<String> fTitulo, List<String> fDesc, List<String> fPath) {
 		List<Foto> nuevasFotos = usuario.addFotosToAlbum(a, fTitulo, fDesc, fPath);
-		factoria.getPublicacionDAO().addFotosAlbum(a.getId(), nuevasFotos);
+		factoria.getPublicacionDAO().addFotosAlbum(a, nuevasFotos);
 		factoria.getPublicacionDAO().update(a);
 	}
 
 	public boolean comprobarTituloAlbum(String tit) {
 		return usuario.getAlbumesPerfil().stream().anyMatch(a -> a.getTitulo().equals(tit));
 	}
-
-	public Optional<Usuario> findUsuario(String username) {
-		return RepoUsuarios.INSTANCE.findUsuario(username);
-	}//TODO mejora persistencia
-
-	public Optional<Publicacion> findPublicacion(int id) {
-		return RepoPublicaciones.INSTANCE.findPublicacion(id);
-	}//TODO idem
 
 	public void darMeGusta(Publicacion p) {
 		p.darMeGusta();
@@ -217,7 +226,7 @@ public enum Controlador implements FotosListener {
 		for (umu.tds.fotos.Foto f : fotos.getFotos()) {
 			// Creamos la Foto
 			Publicacion p = usuario.addFoto(f.getTitulo(), f.getDescripcion(), f.getPath());
-			f.getHashTags().stream().forEach(h -> h.getHashTag().stream().forEach(ha -> p.addHashTag(ha)));
+			f.getHashTags().stream().forEach(h -> h.getHashTag().stream().forEach(ha -> p.addHashtag(ha)));
 
 			// Añadimos a repositorio
 			RepoPublicaciones.INSTANCE.addPublicacion(p);

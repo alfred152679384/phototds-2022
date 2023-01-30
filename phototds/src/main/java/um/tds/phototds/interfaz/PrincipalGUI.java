@@ -257,6 +257,8 @@ public class PrincipalGUI extends JFrame {
 			if (w.getOk()) {
 				panelCentral.removeAll();
 				cargarPerfilUsuario(usuarioActual);
+				panelFotosPerfil.removeAll();
+				cargarAlbumesPerfil(usuarioActual);
 				recargarVentana();
 			}
 		});
@@ -610,8 +612,10 @@ public class PrincipalGUI extends JFrame {
 			RegisterGUI w = new RegisterGUI(framePrincipal, RegisterGUI.MODE_UPDATE);
 			w.setVisible(true);
 			if (w.getOk()) {
-				panelCentral.removeAll();
-				cargarPerfilUsuario(Controlador.INSTANCE.getUsuarioActual());
+				panelGeneral.removeAll();
+				crearPanelNorte();
+				crearPanelCentral();
+				mostrarPerfil = true;
 				recargarVentana();
 			}
 		});

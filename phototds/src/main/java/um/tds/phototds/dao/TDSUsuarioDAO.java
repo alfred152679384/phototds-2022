@@ -8,10 +8,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import tds.driver.FactoriaServicioPersistencia;
 import tds.driver.ServicioPersistencia;
+import um.tds.phototds.dominio.Notificacion;
 import um.tds.phototds.dominio.Usuario;
 import beans.Entidad;
 import beans.Propiedad;
@@ -22,6 +24,7 @@ import beans.Propiedad;
  * 
  */
 public final class TDSUsuarioDAO implements UsuarioDAO {
+	// Constants
 	private static final String USUARIO = "Usuario";
 	private static final String USERNAME = "username";
 	private static final String NOMBRE = "nombre";
@@ -34,7 +37,9 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 	private static final String SEGUIDORES = "listaSeguidores";
 	private static final String SEGUIDOS = "listaSeguidos";
 	private static final String NOTIFICACIONES = "listaNotificaciones";
-	
+
+	private static final String LISTA_VACIA = "[]";
+
 	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 	private ServicioPersistencia servPersistencia;
@@ -45,8 +50,7 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		
+
 	}
 
 	private Usuario entidadToUsuario(Entidad eUsuario) {
@@ -55,25 +59,43 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 		String nombre = servPersistencia.recuperarPropiedadEntidad(eUsuario, NOMBRE);
 		String email = servPersistencia.recuperarPropiedadEntidad(eUsuario, EMAIL);
 		String password = servPersistencia.recuperarPropiedadEntidad(eUsuario, PASSWORD);
-		
-		String fechaNacimiento = servPersistencia.recuperarPropiedadEntidad(eUsuario, FECHA_NACIMIENTO);
-		Date fechNac;
+
+		// parse fecha nacimiento
+		String fechaNacimientoString = servPersistencia.recuperarPropiedadEntidad(eUsuario, FECHA_NACIMIENTO);
+		Date fechaNacimiento = null;
 		try {
-			fechNac = dateFormat.parse(fechaNacimiento);
-		}catch(ParseException e) {
-			System.err.println("Fallo parser fecha nacimiento usuario "+username);
+			fechaNacimiento = dateFormat.parse(fechaNacimientoString);
+		} catch (ParseException e) {
+			System.err.println("Fallo parser fecha nacimiento usuario " + username);
 		}
-		
+
+		// Foto perfil
 		String fotoPerfil = servPersistencia.recuperarPropiedadEntidad(eUsuario, FOTO_PERFIL);
-		String presentacion = servPersistencia.recuperarPropiedadEntidad(eUsuario, PRESENTACION);
+
+		// Presentacion
+		String presentacionString = servPersistencia.recuperarPropiedadEntidad(eUsuario, PRESENTACION);
+		Optional<String> presentacion;
+		presentacion = presentacionString.equals("null") ? Optional.empty() : Optional.of(presentacionString);
+
+		// Premium
 		String isPremium = servPersistencia.recuperarPropiedadEntidad(eUsuario, PREMIUM);
-		// Publicaciones no se guarda aquí porque se hace ya en RepoPublicaciones
-		String listaSeguidores = servPersistencia.recuperarPropiedadEntidad(eUsuario, SEGUIDORES);
-		String listaSeguidos = servPersistencia.recuperarPropiedadEntidad(eUsuario, SEGUIDOS);
-		String notificaciones = servPersistencia.recuperarPropiedadEntidad(eUsuario, NOTIFICACIONES);
-		
+		boolean premium = isPremium.equals("false") ? false : true;
+
+		// Listas de objetos no construidos
+		String listaSeguidoresString = servPersistencia.recuperarPropiedadEntidad(eUsuario, SEGUIDORES);
+		Optional<String> listaSeguidores;
+		listaSeguidores = listaSeguidoresString.equals(LISTA_VACIA) ? Optional.empty()
+				: Optional.of(listaSeguidoresString);
+		String listaSeguidosString = servPersistencia.recuperarPropiedadEntidad(eUsuario, SEGUIDOS);
+		Optional<String> listaSeguidos;
+		listaSeguidos = listaSeguidosString.equals(LISTA_VACIA) ? Optional.empty() : Optional.of(listaSeguidosString);
+		String notificacionesString = servPersistencia.recuperarPropiedadEntidad(eUsuario, NOTIFICACIONES);
+		Optional<String> notificaciones;
+		notificaciones = notificacionesString.equals(LISTA_VACIA) ? Optional.empty()
+				: Optional.of(notificacionesString);
+
 		Usuario usuario = new Usuario(username, nombre, email, password, fechaNacimiento, fotoPerfil, presentacion,
-				isPremium, listaSeguidores, listaSeguidos, notificaciones);
+				premium, listaSeguidores, listaSeguidos, notificaciones);
 		usuario.setId(eUsuario.getId());
 
 		return usuario;
@@ -82,23 +104,28 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 	private void cargarUsuariosSiguiendo(List<Usuario> users) {
 		for (Usuario u : users) {
 			// Cargamos usuarios seguidores
-			String listaSeguidores = u.getListaSeguidoresString();
-			if (!listaSeguidores.equals("[]")) {
-				String aux = listaSeguidores.substring(1, listaSeguidores.length() - 1);
+			Optional<String> listaSeguidores = u.getListaSeguidoresDAO();
+			if (listaSeguidores.isPresent()) {
+				String aux = listaSeguidores.get().substring(1, listaSeguidores.get().length() - 1);
 				String[] usersString = aux.split(",");
 				for (String s : usersString) {
-					u.setSeguidoresDAO(users.stream().filter(us -> us.getId() == Integer.parseInt(s))
-							.collect(Collectors.toList()));
+					List<Usuario> usuariosSeguidores = users.stream()
+							.filter(us -> us.getId() == Integer.parseInt(s))
+							.collect(Collectors.toList());
+					u.setSeguidoresDAO(usuariosSeguidores);
 				}
 			}
+			
 			// Cargamos usuarios seguidos
-			String listaSeguidos = u.getListaSeguidosString();
-			if (!listaSeguidos.equals("[]")) {
-				String aux = listaSeguidos.substring(1, listaSeguidos.length() - 1);
+			Optional<String> listaSeguidos = u.getListaSeguidosDAO();
+			if(listaSeguidos.isPresent()) {
+				String aux = listaSeguidos.get().substring(1, listaSeguidos.get().length() - 1);
 				String[] usersString = aux.split(",");
 				for (String s : usersString) {
-					u.setSeguidosDAO(users.stream().filter(us -> us.getId() == Integer.parseInt(s))
-							.collect(Collectors.toList()));
+					List<Usuario> usuariosSeguidos = users.stream()
+							.filter(us -> us.getId() == Integer.parseInt(s))
+							.collect(Collectors.toList());
+					u.setSeguidosDAO(usuariosSeguidos);
 				}
 			}
 		}
@@ -108,20 +135,21 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 		Entidad eUsuario = new Entidad();
 		eUsuario.setNombre(USUARIO);
 
-		eUsuario.setPropiedades(new ArrayList<Propiedad>(Arrays.asList(new Propiedad(USERNAME, usuario.getUsername()),
+		eUsuario.setPropiedades(new ArrayList<Propiedad>(Arrays.asList(
+				new Propiedad(USERNAME, usuario.getUsername()),
 				new Propiedad(NOMBRE, usuario.getNombre()), 
 				new Propiedad(EMAIL, usuario.getEmail()),
 				new Propiedad(PASSWORD, usuario.getPassword()),
-				new Propiedad(FECHA_NACIMIENTO, usuario.getFechaNacimientoDAO()),
-				new Propiedad(FOTO_PERFIL, usuario.getFotoPerfilDAO()),
-				new Propiedad(PRESENTACION, usuario.getDAOPresentacion()),
-				new Propiedad(PREMIUM, usuario.isPremiumDAO()), 
-				new Propiedad(NOTIFICACIONES, usuario.getNotificacionesDAO()),
-				new Propiedad(SEGUIDORES, usuario.getSeguidoresDAO()),
-				new Propiedad(SEGUIDOS, usuario.getSeguidosDAO()))));
+				new Propiedad(FECHA_NACIMIENTO, dateFormat.format(usuario.getFechaNacimiento())),
+				new Propiedad(FOTO_PERFIL, usuario.getFotoPerfil()),
+				new Propiedad(PRESENTACION, presentacionToString(usuario.getPresentacion())),
+				new Propiedad(PREMIUM, premiumToString(usuario.isPremium())),
+				new Propiedad(NOTIFICACIONES, listNotificacionToString(usuario.getNotificaciones())),
+				new Propiedad(SEGUIDORES, listUsuarioToString(usuario.getSeguidores())),
+				new Propiedad(SEGUIDOS, listUsuarioToString(usuario.getSeguidos())))));
 		return eUsuario;
 	}
-
+	
 	public void create(Usuario usuario) {
 		Entidad eUsuario = this.usuarioToEntidad(usuario);
 		eUsuario = servPersistencia.registrarEntidad(eUsuario);
@@ -145,17 +173,17 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 			if (prop.getNombre().equals(PASSWORD)) {
 				prop.setValor(usuario.getPassword());
 			} else if (prop.getNombre().equals(PREMIUM)) {
-				prop.setValor(usuario.isPremiumDAO());
+				prop.setValor(premiumToString(usuario.isPremium()));
 			} else if (prop.getNombre().equals(FOTO_PERFIL)) {
-				prop.setValor(usuario.getFotoPerfilDAO());
+				prop.setValor(usuario.getFotoPerfil());
 			} else if (prop.getNombre().equals(PRESENTACION)) {
-				prop.setValor(usuario.getDAOPresentacion());
+				prop.setValor(presentacionToString(usuario.getPresentacion()));
 			} else if (prop.getNombre().equals(SEGUIDORES)) {
-				prop.setValor(usuario.getSeguidoresDAO());
+				prop.setValor(listUsuarioToString(usuario.getSeguidores()));
 			} else if (prop.getNombre().equals(SEGUIDOS)) {
-				prop.setValor(usuario.getSeguidosDAO());
+				prop.setValor(listUsuarioToString(usuario.getSeguidos()));
 			} else if (prop.getNombre().equals(NOTIFICACIONES)) {
-				prop.setValor(usuario.getNotificacionesDAO());
+				prop.setValor(listNotificacionToString(usuario.getNotificaciones()));
 			}
 			servPersistencia.modificarPropiedad(prop);
 		}
@@ -178,5 +206,37 @@ public final class TDSUsuarioDAO implements UsuarioDAO {
 
 		return usuarios;
 	}
-
+	
+	private String premiumToString (boolean premium) {
+		return premium == false ? "false" : "true";
+	}
+	
+	private String presentacionToString(Optional<String> presentacion) {
+		return presentacion.isEmpty() ? "null" : presentacion.get();
+	}
+	
+	private String listNotificacionToString(List<Notificacion> notificaciones) {
+		String n = "[";
+		for (int i = 0; i < notificaciones.size(); i++) {
+			if (i == 0)
+				n += notificaciones.get(i).getPublicacion().getId();
+			else
+				n += "," + notificaciones.get(i).getPublicacion().getId();
+		}
+		n += "]";
+		return n;
+	}
+	
+	private String listUsuarioToString(List<Usuario> list) {
+		String s = "[";
+		for (int i = 0; i < list.size(); i++) {
+			if (i == 0)
+				s += Integer.toString(list.get(i).getId());
+			else
+				s += "," + Integer.toString(list.get(i).getId());
+		}
+		s += "]";
+		return s;
+	}
 }
+
